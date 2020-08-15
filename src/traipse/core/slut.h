@@ -33,7 +33,7 @@ constexpr auto createInstanceCreateInfo(const VkApplicationInfo *applicationInfo
     return ans;
 }
 
-constexpr auto toMessage(const VkResult &result) {
+string toMessage(const VkResult &result) {
     switch (result) {
          case VK_SUCCESS:
              return "Command completed successfully";

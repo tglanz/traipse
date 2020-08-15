@@ -1,5 +1,6 @@
 #include <vulkan/vulkan.h>
 #include <iostream>
+#include <exception>
 #include <string>
 #include <variant>
 
@@ -8,6 +9,10 @@
 using namespace std;
 using namespace traipse::core;
 
+void cleanup(const VkInstance &instance) {
+    vkDestroyInstance(instance, NULL);
+}
+
 int main(int argc, char** argv) {
     const auto applicationInfo = createApplicationInfo();
     const auto instanceCreateInfo = createInstanceCreateInfo(&applicationInfo);
@@ -15,20 +20,54 @@ int main(int argc, char** argv) {
     VkResult result;
     VkInstance instance;
 
-    result = vkCreateInstance(&instanceCreateInfo, NULL, &instance);
-    cout << "create instance result: " << toMessage(result) << endl;
+    try {
+        result = vkCreateInstance(&instanceCreateInfo, NULL, &instance);
+        cout << "create instance result: " << toMessage(result) << endl;
 
-    if (result != VK_SUCCESS) {
-        return 1;
+        if (result != VK_SUCCESS) {
+            throw "failed to create instance";
+        }
+
+        cout << "acquiring layers properties" << endl;
+        vector<LayerProperties> layersProperties;
+        {
+            auto response = acquireLayersProperties();
+            if (auto ptr = std::get_if<vector<LayerProperties>>(&response)) {
+                layersProperties = *ptr;
+            } else {
+                result = std::get<VkResult>(response);
+                if (result != VK_SUCCESS) throw std::runtime_error(
+                       "failed to acquire layers properties: " + toMessage(result)); 
+            }
+        }
+
+        cout << "acquiring physical devices" << endl;
+        vector<VkPhysicalDevice> physicalDevices;
+        {
+            auto response = acquirePhysicalDevices(instance);
+
+            if (auto ptr = std::get_if<vector<VkPhysicalDevice>>(&response)) {
+                physicalDevices = *ptr;
+            } else {
+                result = std::get<VkResult>(response);
+                if (result == VK_SUCCESS) {
+                    throw std::runtime_error("no physical devices were found");
+                } else {
+                    throw std::runtime_error("failed to acquire physical devices: " + toMessage(result));
+                }
+            }
+            cout << "physical devices:" << endl;
+            for (auto physicalDevice : physicalDevices) {
+                cout << " - ..." << endl;
+            }
+        }
+
+    } catch (const std::exception &ex) {
+        cleanup(instance);
+        cerr << "error: " << ex.what() << endl;
+        exit(1);
     }
 
-    auto response = acquireLayersProperties();
-    if (auto resultPtr = std::get_if<VkResult>(&response)) {
-        cout << "failed to acquire layers properties: " << toMessage(*resultPtr) << endl;
-    }
-
-
-    vkDestroyInstance(instance, NULL);
 
     return 0;
 }
