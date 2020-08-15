@@ -19,7 +19,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-[ $flag_debug == true ] && build_type=Debug || build_type=Release;
+[[ $flag_debug == true ]] && build_type=Debug || build_type=Release;
 
 func_verbose "parameters:
   - source directory : $source_dir
@@ -27,6 +27,9 @@ func_verbose "parameters:
   - build type       : $build_type
   - clean enabled    : $flag_clean"
  
-[[ $flag_clean == true ]] && rm -rf $build_dir
- 
-cmake -H$root_dir -B$build_dir -DCMAKE_BUILD_TYPE=$build_type && cmake --build $build_dir --config $build_type -- -j 4
+if [[ $flag_clean == true ]]; then
+    func_verbose "cleaning $build_dir" && rm -rf $build_dir || func_error "failed to clean"
+fi
+
+func_verbose "generating from $root_dir to $build_dir" && cmake -H$root_dir -B$build_dir -DCMAKE_BUILD_TYPE=$build_type || func_error "failed to generate"
+func_verbose "building from $build_dir" && cmake --build $build_dir --config $build_type -- -j 4 || func_error "failed to build"
