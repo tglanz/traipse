@@ -1,6 +1,7 @@
 #include <vulkan/vulkan.h>
 #include <iostream>
 #include <string>
+#include <variant>
 
 #include "traipse/core/core.h"
 
@@ -20,6 +21,12 @@ int main(int argc, char** argv) {
     if (result != VK_SUCCESS) {
         return 1;
     }
+
+    auto response = acquireLayersProperties();
+    if (auto resultPtr = std::get_if<VkResult>(&response)) {
+        cout << "failed to acquire layers properties: " << toMessage(*resultPtr) << endl;
+    }
+
 
     vkDestroyInstance(instance, NULL);
 
