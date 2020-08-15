@@ -2,36 +2,14 @@
 #define TRAIPSE_CORE_SLUT_H_
 
 #include <vulkan/vulkan.h>
+#include <exception>
+#include <vector>
 #include <string>
 
-using std::string;
+using std::string, std::vector;
 
 namespace traipse {
 namespace core {
-
-constexpr auto createApplicationInfo() {
-    VkApplicationInfo ans = {};
-    ans.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    ans.pNext = NULL;
-    ans.pApplicationName = "vulkan application";
-    ans.applicationVersion = 1;
-    ans.pEngineName = "vulkan engine";
-    ans.apiVersion = VK_API_VERSION_1_0;
-    return ans;
-}
-
-constexpr auto createInstanceCreateInfo(const VkApplicationInfo *applicationInfo) {
-    VkInstanceCreateInfo ans = {};
-    ans.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    ans.pNext = NULL;
-    ans.flags = 0;
-    ans.pApplicationInfo = applicationInfo;
-    ans.enabledExtensionCount = 0;
-    ans.ppEnabledExtensionNames = NULL;
-    ans.enabledLayerCount = 0;
-    ans.ppEnabledLayerNames = NULL;
-    return ans;
-}
 
 string toMessage(const VkResult &result) {
     switch (result) {
@@ -76,6 +54,34 @@ string toMessage(const VkResult &result) {
          default:
              return "Unknown enum value";
     }
+}
+
+VkInstance createInstance() {
+    VkApplicationInfo applicationInfo;
+    applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    applicationInfo.pNext = NULL;
+    applicationInfo.pApplicationName = "vulkan application";
+    applicationInfo.applicationVersion = 1;
+    applicationInfo.pEngineName = "vulkan engine";
+    applicationInfo.apiVersion = VK_API_VERSION_1_0;
+
+    VkInstanceCreateInfo instanceCreateInfo;
+    instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    instanceCreateInfo.pNext = NULL;
+    instanceCreateInfo.flags = 0;
+    instanceCreateInfo.pApplicationInfo = &applicationInfo;
+    instanceCreateInfo.enabledExtensionCount = 0;
+    instanceCreateInfo.ppEnabledExtensionNames = NULL;
+    instanceCreateInfo.enabledLayerCount = 0;
+    instanceCreateInfo.ppEnabledLayerNames = NULL;
+
+    VkInstance instance;
+    auto result = vkCreateInstance(&instanceCreateInfo, NULL, &instance);
+
+    if (result != VK_SUCCESS) throw std::runtime_error(
+            "failed to create instance: " + toMessage(result));
+
+    return instance;
 }
 
 }  // namespace core

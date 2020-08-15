@@ -5,69 +5,52 @@
 #include <variant>
 
 #include "traipse/core/core.h"
+#include "vk_enum_string_helper.h"
 
 using namespace std;
 using namespace traipse::core;
 
 void cleanup(const VkInstance &instance) {
+    cout << "destroying instance" << endl;
     vkDestroyInstance(instance, NULL);
 }
 
 int main(int argc, char** argv) {
-    const auto applicationInfo = createApplicationInfo();
-    const auto instanceCreateInfo = createInstanceCreateInfo(&applicationInfo);
 
-    VkResult result;
     VkInstance instance;
-
+    
     try {
-        result = vkCreateInstance(&instanceCreateInfo, NULL, &instance);
-        cout << "create instance result: " << toMessage(result) << endl;
-
-        if (result != VK_SUCCESS) {
-            throw "failed to create instance";
-        }
-
-        cout << "acquiring layers properties" << endl;
-        vector<LayerProperties> layersProperties;
-        {
-            auto response = acquireLayersProperties();
-            if (auto ptr = std::get_if<vector<LayerProperties>>(&response)) {
-                layersProperties = *ptr;
-            } else {
-                result = std::get<VkResult>(response);
-                if (result != VK_SUCCESS) throw std::runtime_error(
-                       "failed to acquire layers properties: " + toMessage(result)); 
-            }
-        }
+        cout << "creating instance" << endl;
+        instance = createInstance();
 
         cout << "acquiring physical devices" << endl;
-        vector<VkPhysicalDevice> physicalDevices;
-        {
-            auto response = acquirePhysicalDevices(instance);
+        vector<VkPhysicalDevice> physicalDevices = acquirePhysicalDevices(instance);
 
-            if (auto ptr = std::get_if<vector<VkPhysicalDevice>>(&response)) {
-                physicalDevices = *ptr;
-            } else {
-                result = std::get<VkResult>(response);
-                if (result == VK_SUCCESS) {
-                    throw std::runtime_error("no physical devices were found");
-                } else {
-                    throw std::runtime_error("failed to acquire physical devices: " + toMessage(result));
-                }
-            }
-            cout << "physical devices:" << endl;
-            for (auto physicalDevice : physicalDevices) {
-                cout << " - ..." << endl;
+        vector<VkPhysicalDeviceProperties> physicalDevicesProperties;
+
+        for (auto physicalDevice : physicalDevices) {
+            auto physicalDeviceProperties = acquirePhysicalDeviceProperties(physicalDevice);
+            physicalDevicesProperties.push_back(physicalDeviceProperties);
+
+            string deviceName = physicalDeviceProperties.deviceName;
+            string deviceType = string_VkPhysicalDeviceType(physicalDeviceProperties.deviceType);
+            cout << " - name=\"" << deviceName << "\", type=\"" << deviceType << "\"" << endl; 
+         } 
+
+        vector<VkQueueFamilyProperties> queueFamilyProperties;
+
+        for (auto physicalDevice : physicalDevices) {
+            queueFamilyProperties = acquireDeviceQueueFamilyProperties(physicalDevice);
+            if (queueFamilyProperties.size() > 0) {
+                break;
             }
         }
 
-    } catch (const std::exception &ex) {
-        cleanup(instance);
-        cerr << "error: " << ex.what() << endl;
-        exit(1);
+    } catch (const std::exception &exception) {
+        cerr << "error: " << exception.what() << endl;
     }
 
+    cleanup(instance);
 
     return 0;
 }

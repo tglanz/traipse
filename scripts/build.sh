@@ -28,8 +28,12 @@ func_verbose "parameters:
   - clean enabled    : $flag_clean"
  
 if [[ $flag_clean == true ]]; then
-    func_verbose "cleaning $build_dir" && rm -rf $build_dir || func_error "failed to clean"
+    func_verbose "cleaning $build_dir"
+    rm -rf $build_dir || func_error "failed to clean"
 fi
 
-func_verbose "generating from $root_dir to $build_dir" && cmake -H$root_dir -B$build_dir -DCMAKE_BUILD_TYPE=$build_type || func_error "failed to generate"
-func_verbose "building from $build_dir" && cmake --build $build_dir --config $build_type -- -j 4 || func_error "failed to build"
+func_verbose "generating from $root_dir to $build_dir"
+cmake -H$root_dir -B$build_dir -DCMAKE_BUILD_TYPE=$build_type || func_error "failed to generate"
+
+func_verbose "building from $build_dir"
+cmake --build $build_dir --config $build_type -- -j 4 || func_error "failed to build"
