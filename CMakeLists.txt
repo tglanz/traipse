@@ -28,6 +28,10 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 #     ${PROJECT_SOURCE_DIR}/third_party/vulkan/1.2.148.1/x86_64/include)
 # target_link_libraries(traipse vulkan)
 
+file(GLOB_RECURSE core_source_files "${PROJECT_SOURCE_DIR}/src/traipse/core/*.cpp")
+message("core files: ${core_source_files}")
+add_library(traipse_core SHARED ${core_source_files})
+
 link_libraries(vulkan)
 include_directories(PUBLIC
     ${PROJECT_SOURCE_DIR}/src
@@ -35,6 +39,7 @@ include_directories(PUBLIC
 
 
 add_executable(traipse_basic ${PROJECT_SOURCE_DIR}/src/traipse/executables/basic.cpp) 
+target_link_libraries(traipse_basic traipse_core)
 
 
 # target_link_libraries(traipse_basic vulkan)

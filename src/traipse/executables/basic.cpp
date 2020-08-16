@@ -1,8 +1,7 @@
-#include <vulkan/vulkan.h>
 #include <iostream>
 #include <exception>
-#include <string>
-#include <variant>
+
+#include <vulkan/vulkan.h>
 
 #include "traipse/core/core.h"
 #include "vk_enum_string_helper.h"
@@ -15,6 +14,29 @@ void cleanup(const VkInstance &instance) {
     vkDestroyInstance(instance, NULL);
 }
 
+bool hasFlag(uint32_t flags, uint32_t flag) {
+    return (flags & flag) == flag;
+}
+
+void printPhysicalDevicesInfos(vector<PhysicalDeviceInfo> physicalDevicesInfos) {
+    for (auto info : physicalDevicesInfos) {
+        auto deviceName = info.physicalDeviceProperties.deviceName;
+        auto deviceType = string_VkPhysicalDeviceType(info.physicalDeviceProperties.deviceType);
+        cout << "- " << deviceName << "; " << deviceType << endl;
+
+        cout << "  - queue families: ";
+        for (auto queueFamilyProperties : info.physicalDeviceQueueFamilyProperties) {
+            auto flags = queueFamilyProperties.queueFlags;
+            cout << "flags=" << flags
+                << " (graphics=" << hasFlag(flags, VK_QUEUE_GRAPHICS_BIT)
+                << ", compute=" << hasFlag(flags, VK_QUEUE_COMPUTE_BIT)
+                << ", transfer=" << hasFlag(flags, VK_QUEUE_TRANSFER_BIT)
+                << ", sparse=" << hasFlag(flags, VK_QUEUE_SPARSE_BINDING_BIT)
+                << ")" << endl;
+        }
+    }
+}
+
 int main(int argc, char** argv) {
 
     VkInstance instance;
@@ -23,29 +45,9 @@ int main(int argc, char** argv) {
         cout << "creating instance" << endl;
         instance = createInstance();
 
-        cout << "acquiring physical devices" << endl;
-        vector<VkPhysicalDevice> physicalDevices = acquirePhysicalDevices(instance);
-
-        vector<VkPhysicalDeviceProperties> physicalDevicesProperties;
-
-        for (auto physicalDevice : physicalDevices) {
-            auto physicalDeviceProperties = acquirePhysicalDeviceProperties(physicalDevice);
-            physicalDevicesProperties.push_back(physicalDeviceProperties);
-
-            string deviceName = physicalDeviceProperties.deviceName;
-            string deviceType = string_VkPhysicalDeviceType(physicalDeviceProperties.deviceType);
-            cout << " - name=\"" << deviceName << "\", type=\"" << deviceType << "\"" << endl; 
-         } 
-
-        vector<VkQueueFamilyProperties> queueFamilyProperties;
-
-        for (auto physicalDevice : physicalDevices) {
-            queueFamilyProperties = acquireDeviceQueueFamilyProperties(physicalDevice);
-            if (queueFamilyProperties.size() > 0) {
-                break;
-            }
-        }
-
+        cout << "acquiring physical devices information" << endl;
+        vector<PhysicalDeviceInfo> physicalDevicesInfos = acquirePhysicalDevicesInfos(instance);
+        printPhysicalDevicesInfos(physicalDevicesInfos);
     } catch (const std::exception &exception) {
         cerr << "error: " << exception.what() << endl;
     }

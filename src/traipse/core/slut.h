@@ -1,10 +1,11 @@
 #ifndef TRAIPSE_CORE_SLUT_H_
 #define TRAIPSE_CORE_SLUT_H_
 
-#include <vulkan/vulkan.h>
-#include <exception>
+#include <stdexcept>
 #include <vector>
 #include <string>
+
+#include <vulkan/vulkan.h>
 
 using std::string, std::vector;
 
