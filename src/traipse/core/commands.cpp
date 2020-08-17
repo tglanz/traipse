@@ -17,6 +17,9 @@ VkCommandPool createCommandPool(const VkDevice &device, uint32_t queueFamilyInde
 
     VkResult result = vkCreateCommandPool(device, &commandPoolCreateInfo, NULL, &ans);
 
+    if (result != VK_SUCCESS) throw std::runtime_error(
+            "failed to create command pool: " + toMessage(result));
+
     return ans;
 }
 

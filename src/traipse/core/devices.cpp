@@ -118,7 +118,7 @@ VkDevice createDevice(const PhysicalDeviceInfo &physicalDeviceInfo, uint32_t que
  * i.e; find multiple, find best etc...
  */
 uint32_t selectGraphicsQueueFamilyIndex(const vector<VkQueueFamilyProperties> &queueFamilyProperties) {
-    for (auto idx = 0; idx < queueFamilyProperties.size(); ++idx) {
+    for (size_t idx = 0; idx < queueFamilyProperties.size(); ++idx) {
         if (queueFamilyProperties.at(idx).queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             return idx; 
         }

@@ -9,9 +9,9 @@ namespace core {
 InstanceInfo createInstance() {
 
     InstanceInfo ans = {
+        .instance = VK_NULL_HANDLE,
         .extensionNames = {
             VK_KHR_SURFACE_EXTENSION_NAME,
-            VK_KHR_XLIB_SURFACE_EXTENSION_NAME
         }
     };
 

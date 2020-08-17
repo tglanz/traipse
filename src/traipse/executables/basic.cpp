@@ -1,6 +1,9 @@
 #include <iostream>
 #include <exception>
 
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 #include <vulkan/vulkan.h>
 
 #include "traipse/core/core.h"
@@ -15,17 +18,27 @@ void cleanup(
         const VkCommandPool &commandPool, 
         const vector<VkCommandBuffer> commandBuffers) {
 
-    cout << "freeing command buffers" << endl;
-    vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
+    if (device != VK_NULL_HANDLE) {
+        if (commandBuffers.size() > 0) {
+            cout << "freeing command buffers" << endl;
+            vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
+        }
 
-    cout << "destroying command pool" << endl;
-    vkDestroyCommandPool(device, commandPool, NULL);
+        if (commandPool != VK_NULL_HANDLE) {
+            cout << "destroying command pool: " << commandPool << endl;
+            vkDestroyCommandPool(device, commandPool, NULL);
+        }
 
-    cout << "destroying device" << endl;
-    vkDestroyDevice(device, NULL);
+        cout << "destroying device" << endl;
+        vkDestroyDevice(device, NULL);
+    }
 
-    cout << "destroying instance" << endl;
-    vkDestroyInstance(instance, NULL);
+    
+    if (instance != VK_NULL_HANDLE) {
+        cout << "destroying instance" << endl;
+        vkDestroyInstance(instance, NULL);
+    }
+
 }
 
 bool hasFlag(uint32_t flags, uint32_t flag) {
@@ -46,7 +59,7 @@ void printPhysicalDevicesInfo(vector<PhysicalDeviceInfo> physicalDevicesInfo) {
 
         cout << " - queue families: " << endl;
 
-        for (auto idx = 0; idx < info.queueFamilyProperties.size(); ++idx) {
+        for (size_t idx = 0; idx < info.queueFamilyProperties.size(); ++idx) {
             auto flags = info.queueFamilyProperties.at(idx).queueFlags;
             cout << "   - " << idx << ". flags=" << flags
                 << " (graphics=" << hasFlag(flags, VK_QUEUE_GRAPHICS_BIT)
@@ -56,20 +69,21 @@ void printPhysicalDevicesInfo(vector<PhysicalDeviceInfo> physicalDevicesInfo) {
                 << ")" << endl;
 
         }
-        for (auto queueFamilyProperties : info.queueFamilyProperties) {
-            auto flags = queueFamilyProperties.queueFlags;
-                    }
     }
 }
 
-int main(int argc, char** argv) {
+int main(/* int argc, char** argv */) {
 
-    InstanceInfo instanceInfo;
-    VkDevice device;
-    VkCommandPool commandPool;
-    vector<VkCommandBuffer> commandBuffers;
+    InstanceInfo instanceInfo = {};
+    VkDevice device = {};
+    VkCommandPool commandPool = {};
+    vector<VkCommandBuffer> commandBuffers = {};
     
     try {
+
+        glfwInit();
+        if (!glfwVulkanSupported()) throw std::runtime_error("glfw vulkan is not supported"); 
+
         cout << "creating instance" << endl;
         instanceInfo = createInstance();
         cout << "- extensions: " << endl;
