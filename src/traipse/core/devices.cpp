@@ -17,7 +17,10 @@ vector<PhysicalDeviceInfo> acquirePhysicalDevicesInfo(const VkInstance& instance
             .physicalDevice = physicalDevice,
             .physicalDeviceProperties = acquirePhysicalDeviceProperties(physicalDevice),
             .physicalDeviceMemoryProperties = acquirePhysicalDeviceMemoryProperties(physicalDevice),
-            .queueFamilyProperties = acquirePhysicalDeviceQueueFamilyProperties(physicalDevice)
+            .queueFamilyProperties = acquirePhysicalDeviceQueueFamilyProperties(physicalDevice),
+            .extensionNames = {
+                VK_KHR_SWAPCHAIN_EXTENSION_NAME
+            }
         });
     }
 
@@ -96,8 +99,10 @@ VkDevice createDevice(const PhysicalDeviceInfo &physicalDeviceInfo) {
     deviceCreateInfo.pNext = NULL;
     deviceCreateInfo.queueCreateInfoCount = 1;
     deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
-    deviceCreateInfo.enabledExtensionCount = 0;
-    deviceCreateInfo.ppEnabledExtensionNames = NULL;
+    deviceCreateInfo.enabledExtensionCount = physicalDeviceInfo.extensionNames.size();
+    deviceCreateInfo.ppEnabledExtensionNames = physicalDeviceInfo.extensionNames.size() > 0
+        ? physicalDeviceInfo.extensionNames.data()
+        : NULL;
     deviceCreateInfo.enabledLayerCount = 0;
     deviceCreateInfo.ppEnabledLayerNames = NULL;
     deviceCreateInfo.pEnabledFeatures = NULL;

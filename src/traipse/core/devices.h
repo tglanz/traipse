@@ -2,9 +2,10 @@
 #define TRAIPSE_CORE_DEVICES_H_
 
 #include <vulkan/vulkan.h>
+#include <string>
 #include <vector>
 
-using std::vector;
+using std::vector, std::string;
 
 namespace traipse {
 namespace core {
@@ -14,6 +15,7 @@ struct PhysicalDeviceInfo {
     VkPhysicalDeviceProperties physicalDeviceProperties;
     VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
     vector<VkQueueFamilyProperties> queueFamilyProperties;
+    vector<const char *> extensionNames;
 };
 
 vector<PhysicalDeviceInfo> acquirePhysicalDevicesInfo(const VkInstance &instance);
