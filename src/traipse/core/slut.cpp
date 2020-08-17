@@ -48,33 +48,5 @@ string toMessage(const VkResult &result) {
     }
 }
 
-VkInstance createInstance() {
-    VkApplicationInfo applicationInfo;
-    applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    applicationInfo.pNext = NULL;
-    applicationInfo.pApplicationName = "vulkan application";
-    applicationInfo.applicationVersion = 1;
-    applicationInfo.pEngineName = "vulkan engine";
-    applicationInfo.apiVersion = VK_API_VERSION_1_0;
-
-    VkInstanceCreateInfo instanceCreateInfo;
-    instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    instanceCreateInfo.pNext = NULL;
-    instanceCreateInfo.flags = 0;
-    instanceCreateInfo.pApplicationInfo = &applicationInfo;
-    instanceCreateInfo.enabledExtensionCount = 0;
-    instanceCreateInfo.ppEnabledExtensionNames = NULL;
-    instanceCreateInfo.enabledLayerCount = 0;
-    instanceCreateInfo.ppEnabledLayerNames = NULL;
-
-    VkInstance instance;
-    auto result = vkCreateInstance(&instanceCreateInfo, NULL, &instance);
-
-    if (result != VK_SUCCESS) throw std::runtime_error(
-            "failed to create instance: " + toMessage(result));
-
-    return instance;
-}
-
 }  // namespace core
 }  // namespace traipse

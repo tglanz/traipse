@@ -13,7 +13,6 @@ namespace traipse {
 namespace core {
 
 string toMessage(const VkResult &result);
-VkInstance createInstance();
 
 }  // namespace core
 }  // namespace traipse

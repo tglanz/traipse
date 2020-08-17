@@ -36,9 +36,15 @@ void printPhysicalDevicesInfo(vector<PhysicalDeviceInfo> physicalDevicesInfo) {
     for (auto info : physicalDevicesInfo) {
         auto deviceName = info.physicalDeviceProperties.deviceName;
         auto deviceType = string_VkPhysicalDeviceType(info.physicalDeviceProperties.deviceType);
-        cout << "- " << deviceName << "; " << deviceType << endl;
+        cout << "- " << deviceName << endl;
+        cout << " - type: " << deviceType << endl;
 
-        cout << "  - queue families: " << endl;
+        cout << " - extensions: " << endl;
+        for (auto extension : info.extensionNames) {
+            cout << "  - " << extension << endl;
+        }
+
+        cout << " - queue families: " << endl;
 
         for (auto idx = 0; idx < info.queueFamilyProperties.size(); ++idx) {
             auto flags = info.queueFamilyProperties.at(idx).queueFlags;
@@ -58,19 +64,23 @@ void printPhysicalDevicesInfo(vector<PhysicalDeviceInfo> physicalDevicesInfo) {
 
 int main(int argc, char** argv) {
 
-    VkInstance instance;
+    InstanceInfo instanceInfo;
     VkDevice device;
     VkCommandPool commandPool;
     vector<VkCommandBuffer> commandBuffers;
     
     try {
         cout << "creating instance" << endl;
-        instance = createInstance();
+        instanceInfo = createInstance();
+        cout << "- extensions: " << endl;
+        for (auto extensionName : instanceInfo.extensionNames) {
+            cout << " - " << extensionName << endl;
+        }
 
         PhysicalDeviceInfo physicalDeviceInfo;
         {
             cout << "acquiring physical devices information" << endl;
-            vector<PhysicalDeviceInfo> physicalDevicesInfo = acquirePhysicalDevicesInfo(instance);
+            vector<PhysicalDeviceInfo> physicalDevicesInfo = acquirePhysicalDevicesInfo(instanceInfo.instance);
             printPhysicalDevicesInfo(physicalDevicesInfo);
 
             // for now...
@@ -95,7 +105,7 @@ int main(int argc, char** argv) {
         cerr << "error: " << exception.what() << endl;
     }
 
-    cleanup(instance, device, commandPool, commandBuffers);
+    cleanup(instanceInfo.instance, device, commandPool, commandBuffers);
 
     return 0;
 }
