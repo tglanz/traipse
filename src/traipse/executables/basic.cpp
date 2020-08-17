@@ -16,6 +16,7 @@ void cleanup(
         const VkInstance &instance,
         const VkSurfaceKHR surface,
         const VkDevice &device, 
+        const VkSwapchainKHR &swapchain,
         const VkCommandPool &commandPool, 
         const vector<VkCommandBuffer> commandBuffers,
         GLFWwindow *window
@@ -31,6 +32,9 @@ void cleanup(
             cout << "destroying command pool" << endl;
             vkDestroyCommandPool(device, commandPool, NULL);
         }
+
+        cout << "destroying swapchain" << endl;
+        vkDestroySwapchainKHR(device, swapchain, NULL);
 
         cout << "destroying device" << endl;
         vkDestroyDevice(device, NULL);
@@ -87,12 +91,15 @@ void printPhysicalDevicesInfo(vector<PhysicalDeviceInfo> physicalDevicesInfo) {
 
 int main(/* int argc, char** argv */) {
 
-    InstanceInfo instanceInfo = {};
-    VkDevice device = {};
-    VkCommandPool commandPool = {};
-    vector<VkCommandBuffer> commandBuffers = {};
+    InstanceInfo instanceInfo;
     GLFWwindow *window;
-    VkSurfaceKHR surface = {};
+    VkSurfaceKHR surface;
+    PhysicalDeviceInfo physicalDeviceInfo;
+    uint32_t queueFamilyIndex;
+    VkDevice device;
+    SwapchainInfo swapchainInfo;
+    VkCommandPool commandPool;
+    vector<VkCommandBuffer> commandBuffers;
 
     VkResult result;
     
@@ -119,16 +126,16 @@ int main(/* int argc, char** argv */) {
             throw std::runtime_error("failed to create surface: " + toMessage(result));
         }
 
-
-
-        PhysicalDeviceInfo physicalDeviceInfo;
-        uint32_t queueFamilyIndex;
+        // acquire a physical device
+        // scope this to not gather some garbage variables
         {
             cout << "acquiring physical devices information" << endl;
-            vector<PhysicalDeviceInfo> physicalDevicesInfo = acquirePhysicalDevicesInfo(instanceInfo.instance);
+            vector<PhysicalDeviceInfo> physicalDevicesInfo = acquirePhysicalDevicesInfo(
+                    instanceInfo.instance);
             printPhysicalDevicesInfo(physicalDevicesInfo);
 
-            const auto& [left, right] = selectPhysicalDeviceForPresentation(instanceInfo, physicalDevicesInfo);
+            const auto& [left, right] = selectPhysicalDeviceForPresentation(
+                    instanceInfo, physicalDevicesInfo);
 
             physicalDeviceInfo = physicalDevicesInfo.at(left);
             queueFamilyIndex = right;
@@ -142,6 +149,9 @@ int main(/* int argc, char** argv */) {
         cout << "creating device" << endl;
         device = createDevice(physicalDeviceInfo, queueFamilyIndex);
 
+        cout << "creating a swapchain" << endl;
+        swapchainInfo = createSwapchain(device, physicalDeviceInfo.physicalDevice, surface);
+
         cout << "creating command pool" << endl;
         commandPool = createCommandPool(device, queueFamilyIndex);
 
@@ -152,7 +162,14 @@ int main(/* int argc, char** argv */) {
         cerr << "error: " << exception.what() << endl;
     }
 
-    cleanup(instanceInfo.instance, surface, device, commandPool, commandBuffers, window);
+    cleanup(
+            instanceInfo.instance, 
+            surface, 
+            device, 
+            swapchainInfo.swapchain, 
+            commandPool, 
+            commandBuffers, 
+            window);
 
     return 0;
 }

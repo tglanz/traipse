@@ -6,7 +6,13 @@
 namespace traipse {
 namespace core {
        
-VkSwapchainKHR createSwapchain(
+struct SwapchainInfo {
+    VkSwapchainKHR swapchain;
+    VkSurfaceFormatKHR surfaceFormat;
+    VkExtent2D imageExtent;
+};
+
+SwapchainInfo createSwapchain(
         const VkDevice &device,
         const VkPhysicalDevice &physicalDevice,
         const VkSurfaceKHR &surface);

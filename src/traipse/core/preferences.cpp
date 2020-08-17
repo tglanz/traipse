@@ -5,7 +5,7 @@ using std::vector;
 namespace traipse {
 namespace core {
 
-VkSurfaceFormatKHR chooseFormat(vector<VkSurfaceFormatKHR> surfaceFormats) {
+VkSurfaceFormatKHR chooseSurfaceFormat(vector<VkSurfaceFormatKHR> surfaceFormats) {
     // TODO: priority queue
     for (const auto& surfaceFormat : surfaceFormats) {
         if (surfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {

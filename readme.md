@@ -18,3 +18,4 @@ the version and architecture in the path.
 ## useful materials
 
 - [a lunarg tutorial](https://vulkan.lunarg.com/doc/view/1.2.135.0/linux/tutorial/html/index.html)
+- [spec including all extensions](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/index.html)
