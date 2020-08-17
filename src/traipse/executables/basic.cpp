@@ -95,7 +95,7 @@ int main(/* int argc, char** argv */) {
     GLFWwindow *window;
     VkSurfaceKHR surface;
     PhysicalDeviceInfo physicalDeviceInfo;
-    uint32_t queueFamilyIndex;
+    QueueFamilyIndices queueFamilyIndices;
     VkDevice device;
     SwapchainInfo swapchainInfo;
     VkCommandPool commandPool;
@@ -110,7 +110,7 @@ int main(/* int argc, char** argv */) {
         if (!glfwVulkanSupported()) throw std::runtime_error("glfw vulkan is not supported"); 
         
         cout << "creating instance" << endl;
-        instanceInfo = createInstance();
+        instanceInfo = createInstance(true);
         cout << "- extensions: " << endl;
         for (auto extensionName : instanceInfo.extensionNames) {
             cout << " - " << extensionName << endl;
@@ -134,26 +134,27 @@ int main(/* int argc, char** argv */) {
                     instanceInfo.instance);
             printPhysicalDevicesInfo(physicalDevicesInfo);
 
-            const auto& [left, right] = selectPhysicalDeviceForPresentation(
-                    instanceInfo, physicalDevicesInfo);
+            cout << "selecting physical device and queue families" << endl;
+            const auto& [left, right] = selectPhysicalDevice(
+                    physicalDevicesInfo, surface);
 
             physicalDeviceInfo = physicalDevicesInfo.at(left);
-            queueFamilyIndex = right;
+            queueFamilyIndices = right;
 
             cout
-                << "chose physical device: " << physicalDeviceInfo.physicalDeviceProperties.deviceName 
-                << ", queue family index: " << right 
-                << endl;
+                << "- chose physical device: " << physicalDeviceInfo.physicalDeviceProperties.deviceName << endl
+                << "- queue family indices completely valid: " << queueFamilyIndices.isCompletelyValid() << endl
+                << "- queue family indices ideal: " << queueFamilyIndices.isIdeal() << endl;
         }
 
         cout << "creating device" << endl;
-        device = createDevice(physicalDeviceInfo, queueFamilyIndex);
+        device = createDevice(physicalDeviceInfo, queueFamilyIndices);
 
         cout << "creating a swapchain" << endl;
         swapchainInfo = createSwapchain(device, physicalDeviceInfo.physicalDevice, surface);
 
         cout << "creating command pool" << endl;
-        commandPool = createCommandPool(device, queueFamilyIndex);
+        commandPool = createCommandPool(device, queueFamilyIndices.graphicsQueueFamilyIndex.value());
 
         cout << "allocating command buffers" << endl;
         commandBuffers = allocateCommandBuffers(device, commandPool, 1);

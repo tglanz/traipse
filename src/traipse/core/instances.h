@@ -14,7 +14,8 @@ struct InstanceInfo {
     vector<const char *> extensionNames;
 };
 
-InstanceInfo createInstance();
+InstanceInfo createInstance(bool enableDebugLayers);
+vector<VkLayerProperties> getInstanceLayerProperties(); 
 
 }  // namespace core
 }  // namespace traipse

@@ -15,7 +15,8 @@ using std::string, std::vector;
 namespace traipse {
 namespace core {
 
-vector<PhysicalDeviceInfo> acquirePhysicalDevicesInfo(const VkInstance& instance) {
+vector<PhysicalDeviceInfo> acquirePhysicalDevicesInfo(
+        const VkInstance &instance) {
     vector<PhysicalDeviceInfo> ans;
     
     for (VkPhysicalDevice physicalDevice : acquirePhysicalDevices(instance)) {
@@ -76,7 +77,9 @@ VkPhysicalDeviceMemoryProperties acquirePhysicalDeviceMemoryProperties(const VkP
     return ans;
 }
 
-VkDevice createDevice(const PhysicalDeviceInfo &physicalDeviceInfo, uint32_t queueFamilyIndex) {
+VkDevice createDevice(
+        const PhysicalDeviceInfo &physicalDeviceInfo, 
+        const QueueFamilyIndices &queueFamilyIndices) {
     // pick the first queue that support graphics, use it.
     // TODO: acquire all such queues and use the priority mechanism.
 
@@ -85,7 +88,7 @@ VkDevice createDevice(const PhysicalDeviceInfo &physicalDeviceInfo, uint32_t que
 
     float queuePriorities[1] = {0.0};
     VkDeviceQueueCreateInfo deviceQueueCreateInfo = {};
-    deviceQueueCreateInfo.queueFamilyIndex = queueFamilyIndex;
+    deviceQueueCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsQueueFamilyIndex.value();
     deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     deviceQueueCreateInfo.pNext = NULL;
     deviceQueueCreateInfo.queueCount = 1;
@@ -113,35 +116,78 @@ VkDevice createDevice(const PhysicalDeviceInfo &physicalDeviceInfo, uint32_t que
     return ans;
 }
 
+QueueFamilyIndices discoverQueueFamilyIndices(
+        const PhysicalDeviceInfo &physicalDeviceInfo,
+        const VkSurfaceKHR &surface) {
 
-tuple<size_t, size_t> selectPhysicalDeviceForPresentation(
-        const InstanceInfo &instanceInfo, 
-        const vector<PhysicalDeviceInfo> &physicalDevicesInfo) {
+    QueueFamilyIndices queueFamilyIndices;
+    for (size_t index = 0; index < physicalDeviceInfo.queueFamilyProperties.size(); ++index) {
+        auto queueFamilyProperties = physicalDeviceInfo.queueFamilyProperties.at(index);
+        auto queueFlags = queueFamilyProperties.queueFlags;
 
-    // this function has only 2 loops and looks bad. reformat 
+        if (queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            queueFamilyIndices.allGraphicsQueueFamilyIndices.push_back(index);
+        }
 
-    auto instance = instanceInfo.instance;
+        VkBool32 presentationSupported = false;
+        VkResult result = vkGetPhysicalDeviceSurfaceSupportKHR(
+                physicalDeviceInfo.physicalDevice, index, surface, &presentationSupported);
 
-    for (size_t physicalDeviceIndex = 0;
-         physicalDeviceIndex < physicalDevicesInfo.size(); 
-         ++physicalDeviceIndex) {
+        if (result != VK_SUCCESS) throw std::runtime_error(
+                "failed to query presentation support");
 
-        auto physicalDeviceInfo = physicalDevicesInfo.at(physicalDeviceIndex);
-        auto physicalDevice = physicalDeviceInfo.physicalDevice;
-        auto queueFamilyProperties = physicalDeviceInfo.queueFamilyProperties;
+        if (presentationSupported) {
+            queueFamilyIndices.allPresentationQueueFamilyIndices.push_back(index);
+        }
+    }
 
-        for (size_t queueFamilyIndex = 0; 
-             queueFamilyIndex < queueFamilyProperties.size(); 
-             ++queueFamilyIndex) {
+    for (uint32_t graphicsIndex : queueFamilyIndices.allGraphicsQueueFamilyIndices) {
+        queueFamilyIndices.graphicsQueueFamilyIndex = graphicsIndex;
 
-            if (glfwGetPhysicalDevicePresentationSupport(
-                        instance, physicalDevice, queueFamilyIndex)) {
-                return std::make_tuple(physicalDeviceIndex, queueFamilyIndex); 
+        for (uint32_t presentationIndex : queueFamilyIndices.allPresentationQueueFamilyIndices) {
+            queueFamilyIndices.presentationQueueFamilyIndex = presentationIndex;
+
+            if (graphicsIndex == presentationIndex) {
+                return queueFamilyIndices;
             }
         }
     }
 
-    throw std::runtime_error("failed to find an appropriate physical device");
+    return queueFamilyIndices;
+}
+
+tuple<size_t, QueueFamilyIndices> selectPhysicalDevice(
+        const vector<PhysicalDeviceInfo> &physicalDevicesInfo,
+        const VkSurfaceKHR &surface) {
+
+    if (physicalDevicesInfo.size() == 0) throw std::runtime_error(
+            "no physical devices provided");
+
+    bool foundCandidate = false;
+    size_t candidatePhysicalDeviceIndex;
+    QueueFamilyIndices candidateQueueFamilyIndices;
+
+    for (size_t physicalDeviceIndex = 0; physicalDevicesInfo.size(); ++physicalDeviceIndex) {
+        const auto& physicalDeviceInfo = physicalDevicesInfo.at(physicalDeviceIndex);
+
+        QueueFamilyIndices queueFamilyIndices = discoverQueueFamilyIndices(
+                physicalDeviceInfo, surface);
+
+        if (queueFamilyIndices.isCompletelyValid()) {
+            foundCandidate = true;
+            candidatePhysicalDeviceIndex = physicalDeviceIndex;
+            candidateQueueFamilyIndices = queueFamilyIndices;
+
+            if (queueFamilyIndices.isIdeal()) {
+                break;
+            }
+        }
+    }
+
+    if (!foundCandidate) throw std::runtime_error(
+            "failed to find an appropriate physical device");
+
+    return std::make_tuple(candidatePhysicalDeviceIndex, candidateQueueFamilyIndices);
 }
 
 }  // core

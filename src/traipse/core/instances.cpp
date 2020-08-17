@@ -4,10 +4,39 @@
 #include <stdexcept>
 #include <GLFW/glfw3.h>
 
+using std::vector;
+
 namespace traipse {
 namespace core {
-    
-InstanceInfo createInstance() { 
+
+const vector<const char *> DEBUG_LAYERS = { "VK_LAYER_KHRONOS_validation" };
+
+void registerValidationLayers(VkInstanceCreateInfo *instanceCreateInfo) {
+    vector<VkLayerProperties> availableLayerProperties = getInstanceLayerProperties();
+
+    for (const char *debugLayer : DEBUG_LAYERS) {
+        bool found = false;
+        string debugLayerString = debugLayer;
+
+        for (const auto& layerProperties : availableLayerProperties) {
+            string layerNameString = layerProperties.layerName;
+
+            if (debugLayerString == layerNameString) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) throw std::runtime_error(
+                "debug layer '" + debugLayerString + "' isn't available");
+    }
+
+
+    instanceCreateInfo->enabledLayerCount = DEBUG_LAYERS.size();
+    instanceCreateInfo->ppEnabledLayerNames = DEBUG_LAYERS.data();
+}
+
+InstanceInfo createInstance(bool enableValidationLayers) { 
 
     uint32_t count;
     const char **extensionNames = glfwGetRequiredInstanceExtensions(&count); 
@@ -34,13 +63,34 @@ InstanceInfo createInstance() {
     instanceCreateInfo.ppEnabledExtensionNames = ans.extensionNames.size() > 0
         ? ans.extensionNames.data()
         : NULL;
-    instanceCreateInfo.enabledLayerCount = 0;
-    instanceCreateInfo.ppEnabledLayerNames = NULL;
+
+    if (enableValidationLayers) {
+        registerValidationLayers(&instanceCreateInfo);
+    } else {
+        instanceCreateInfo.enabledLayerCount = 0;
+        instanceCreateInfo.ppEnabledLayerNames = NULL;
+    }  
 
     auto result = vkCreateInstance(&instanceCreateInfo, NULL, &ans.instance);
 
     if (result != VK_SUCCESS) throw std::runtime_error(
             "failed to create instance: " + toMessage(result));
+
+    return ans;
+}
+
+vector<VkLayerProperties> getInstanceLayerProperties() {
+    vector<VkLayerProperties> ans;
+    uint32_t count;
+
+    VkResult result = vkEnumerateInstanceLayerProperties(&count, NULL);
+    if (result != VK_SUCCESS) throw std::runtime_error(
+            "failed to get instance layer properties count: " + toMessage(result));
+
+    ans.resize(count);
+    result = vkEnumerateInstanceLayerProperties(&count, ans.data());
+    if (result != VK_SUCCESS) throw std::runtime_error(
+            "failed to get instance layer properties: " + toMessage(result));
 
     return ans;
 }
