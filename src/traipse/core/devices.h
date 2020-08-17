@@ -28,8 +28,9 @@ vector<VkQueueFamilyProperties> acquirePhysicalDeviceQueueFamilyProperties(const
 VkPhysicalDeviceProperties acquirePhysicalDeviceProperties(const VkPhysicalDevice &physicalDevice);
 VkPhysicalDeviceMemoryProperties acquirePhysicalDeviceMemoryProperties(const VkPhysicalDevice &physicalDevice);
 
-VkDevice createDevice(const PhysicalDeviceInfo &physicalDeviceInfo);
+VkDevice createDevice(const PhysicalDeviceInfo &physicalDeviceInfo, uint32_t queueFamilyIndex);
 
+uint32_t selectGraphicsQueueFamilyIndex(const vector<VkQueueFamilyProperties> &queueFamilyProperties);
 }  // namespace core
 }  // namespace traipse
 

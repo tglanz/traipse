@@ -1,3 +1,7 @@
+/**
+ * related material
+ * - https://vulkan.lunarg.com/doc/view/1.2.135.0/linux/tutorial/html/03-init_device.html
+ */
 #include "traipse/core/devices.h"
 #include "traipse/core/slut.h"
 
@@ -70,25 +74,16 @@ VkPhysicalDeviceMemoryProperties acquirePhysicalDeviceMemoryProperties(const VkP
     return ans;
 }
 
-VkDevice createDevice(const PhysicalDeviceInfo &physicalDeviceInfo) {
+VkDevice createDevice(const PhysicalDeviceInfo &physicalDeviceInfo, uint32_t queueFamilyIndex) {
     // pick the first queue that support graphics, use it.
     // TODO: acquire all such queues and use the priority mechanism.
 
     VkDevice ans = {};
-    VkDeviceQueueCreateInfo deviceQueueCreateInfo = {};
 
-    // choose a queue family
-    {
-        vector<VkQueueFamilyProperties> queueFamilyProperties = physicalDeviceInfo.queueFamilyProperties;
-        for (auto idx = 0; idx < queueFamilyProperties.size(); ++idx) {
-            if (queueFamilyProperties.at(idx).queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-                deviceQueueCreateInfo.queueFamilyIndex = idx;
-                break;
-            }
-        }
-    }
 
     float queuePriorities[1] = {0.0};
+    VkDeviceQueueCreateInfo deviceQueueCreateInfo = {};
+    deviceQueueCreateInfo.queueFamilyIndex = queueFamilyIndex;
     deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     deviceQueueCreateInfo.pNext = NULL;
     deviceQueueCreateInfo.queueCount = 1;
@@ -114,6 +109,22 @@ VkDevice createDevice(const PhysicalDeviceInfo &physicalDeviceInfo) {
             "failed to create device: " + toMessage(result));
 
     return ans;
+}
+
+/**
+ * the implementation is rather naive.
+ * in the future this will be more sophisticated perhaps.
+ *
+ * i.e; find multiple, find best etc...
+ */
+uint32_t selectGraphicsQueueFamilyIndex(const vector<VkQueueFamilyProperties> &queueFamilyProperties) {
+    for (auto idx = 0; idx < queueFamilyProperties.size(); ++idx) {
+        if (queueFamilyProperties.at(idx).queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            return idx; 
+        }
+    }
+
+    throw std::runtime_error("failed to find an appropriate queue family");
 }
 
 }  // core
