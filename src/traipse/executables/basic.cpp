@@ -14,9 +14,12 @@ using namespace traipse::core;
 
 void cleanup(
         const VkInstance &instance,
+        const VkSurfaceKHR surface,
         const VkDevice &device, 
         const VkCommandPool &commandPool, 
-        const vector<VkCommandBuffer> commandBuffers) {
+        const vector<VkCommandBuffer> commandBuffers,
+        GLFWwindow *window
+) {
 
     if (device != VK_NULL_HANDLE) {
         if (commandBuffers.size() > 0) {
@@ -31,12 +34,24 @@ void cleanup(
 
         cout << "destroying device" << endl;
         vkDestroyDevice(device, NULL);
-    }
+    } 
 
     if (instance != VK_NULL_HANDLE) {
+        if (surface != VK_NULL_HANDLE) {
+            cout << "destroying surface" << endl;
+            vkDestroySurfaceKHR(instance, surface, NULL);
+        }
         cout << "destroying instance" << endl;
         vkDestroyInstance(instance, NULL);
     }
+
+    if (window != NULL) {
+        cout << "destroying window" << endl;
+        glfwDestroyWindow(window);
+    }
+
+    cout << "terminating glfw" << endl;
+    glfwTerminate();
 }
 
 bool hasFlag(uint32_t flags, uint32_t flag) {
@@ -76,18 +91,35 @@ int main(/* int argc, char** argv */) {
     VkDevice device = {};
     VkCommandPool commandPool = {};
     vector<VkCommandBuffer> commandBuffers = {};
+    GLFWwindow *window;
+    VkSurfaceKHR surface = {};
+
+    VkResult result;
     
     try {
 
+        cout << "initializing glfw and checking support" << endl;
         glfwInit();
         if (!glfwVulkanSupported()) throw std::runtime_error("glfw vulkan is not supported"); 
-
+        
         cout << "creating instance" << endl;
         instanceInfo = createInstance();
         cout << "- extensions: " << endl;
         for (auto extensionName : instanceInfo.extensionNames) {
             cout << " - " << extensionName << endl;
         }
+
+        cout << "creating window" << endl;
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        window = glfwCreateWindow(640, 480, "Traipse - Basic", NULL, NULL);
+
+        cout << "creating surface" << endl;
+        result = glfwCreateWindowSurface(instanceInfo.instance, window, NULL, &surface);
+        if (result != VK_SUCCESS) {
+            throw std::runtime_error("failed to create surface: " + toMessage(result));
+        }
+
+
 
         PhysicalDeviceInfo physicalDeviceInfo;
         uint32_t queueFamilyIndex;
@@ -120,7 +152,7 @@ int main(/* int argc, char** argv */) {
         cerr << "error: " << exception.what() << endl;
     }
 
-    cleanup(instanceInfo.instance, device, commandPool, commandBuffers);
+    cleanup(instanceInfo.instance, surface, device, commandPool, commandBuffers, window);
 
     return 0;
 }
