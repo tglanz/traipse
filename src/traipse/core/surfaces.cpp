@@ -11,14 +11,13 @@ namespace core {
 PhysicalDeviceSurfaceInfo getPhysicalDeviceSurfaceInfo(
         const VkPhysicalDevice &physicalDevice,
         const VkSurfaceKHR &surface) {
-    return {
-        .physicalDevice = physicalDevice,
-        .surface = surface,
-        .capabilities = getPhysicalDeviceSurfaceCapabilities(
-                physicalDevice, surface),
-        .presentModes = getPhysicalDeviceSurfacePresentModes(
-                physicalDevice, surface)
-    };
+    PhysicalDeviceSurfaceInfo ans = {};
+    ans.physicalDevice = physicalDevice;
+    ans.surface = surface;
+    ans.capabilities = getPhysicalDeviceSurfaceCapabilities(physicalDevice, surface);
+    ans.presentModes = getPhysicalDeviceSurfacePresentModes(physicalDevice, surface);
+    ans.surfaceFormats = getPhysicalDeviceSurfaceFormats(physicalDevice, surface);
+    return ans;
 }
 
 VkSurfaceCapabilitiesKHR getPhysicalDeviceSurfaceCapabilities(
@@ -58,6 +57,28 @@ vector<VkPresentModeKHR> getPhysicalDeviceSurfacePresentModes(
 
 }
 
+vector<VkSurfaceFormatKHR> getPhysicalDeviceSurfaceFormats(
+        const VkPhysicalDevice &physicalDevice,
+        const VkSurfaceKHR &surface) {
+    vector<VkSurfaceFormatKHR> ans = {};
+
+    uint32_t count;
+    VkResult result = vkGetPhysicalDeviceSurfaceFormatsKHR(
+            physicalDevice, surface, &count, NULL);
+
+    if (result != VK_SUCCESS) throw std::runtime_error(
+            "failed to get physical device surface format count");
+
+    ans.resize(count);
+
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(
+            physicalDevice, surface, &count, ans.data());
+
+    if (result != VK_SUCCESS) throw std::runtime_error(
+            "failed to get physical device surface format count");
+
+    return ans;
+}
 
 }  // core
 }  // traipse

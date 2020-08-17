@@ -6,7 +6,10 @@
 namespace traipse {
 namespace core {
        
-VkSwapchainKHR createSwapchain(const VkDevice &device);
+VkSwapchainKHR createSwapchain(
+        const VkDevice &device,
+        const VkPhysicalDevice &physicalDevice,
+        const VkSurfaceKHR &surface);
 
 }  // namespace core
 }  // namespace traipse

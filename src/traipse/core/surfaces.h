@@ -15,6 +15,7 @@ struct PhysicalDeviceSurfaceInfo {
     VkSurfaceKHR surface;
     VkSurfaceCapabilitiesKHR capabilities;
     vector<VkPresentModeKHR> presentModes;
+    vector<VkSurfaceFormatKHR> surfaceFormats;
 };
 
 PhysicalDeviceSurfaceInfo getPhysicalDeviceSurfaceInfo(
@@ -26,6 +27,10 @@ VkSurfaceCapabilitiesKHR getPhysicalDeviceSurfaceCapabilities(
         const VkSurfaceKHR &surface);
 
 vector<VkPresentModeKHR> getPhysicalDeviceSurfacePresentModes(
+        const VkPhysicalDevice &physicalDevice,
+        const VkSurfaceKHR &surface);
+
+vector<VkSurfaceFormatKHR> getPhysicalDeviceSurfaceFormats(
         const VkPhysicalDevice &physicalDevice,
         const VkSurfaceKHR &surface);
         
