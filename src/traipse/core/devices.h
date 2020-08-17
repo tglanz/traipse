@@ -12,16 +12,21 @@ namespace core {
 struct PhysicalDeviceInfo {
     VkPhysicalDevice physicalDevice;
     VkPhysicalDeviceProperties physicalDeviceProperties;
-    vector<VkQueueFamilyProperties> physicalDeviceQueueFamilyProperties;
+    VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
+    vector<VkQueueFamilyProperties> queueFamilyProperties;
 };
 
-vector<PhysicalDeviceInfo> acquirePhysicalDevicesInfos(const VkInstance &instance);
+vector<PhysicalDeviceInfo> acquirePhysicalDevicesInfo(const VkInstance &instance);
 
 vector<VkPhysicalDevice> acquirePhysicalDevices(const VkInstance &instance);
 
-VkPhysicalDeviceProperties acquirePhysicalDeviceProperties(const VkPhysicalDevice &physicalDevice);
-
 vector<VkQueueFamilyProperties> acquirePhysicalDeviceQueueFamilyProperties(const VkPhysicalDevice &physicalDevice);
+
+
+VkPhysicalDeviceProperties acquirePhysicalDeviceProperties(const VkPhysicalDevice &physicalDevice);
+VkPhysicalDeviceMemoryProperties acquirePhysicalDeviceMemoryProperties(const VkPhysicalDevice &physicalDevice);
+
+VkDevice createDevice(const PhysicalDeviceInfo &physicalDeviceInfo);
 
 }  // namespace core
 }  // namespace traipse
