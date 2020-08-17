@@ -2,10 +2,14 @@
 #define TRAIPSE_CORE_DEVICES_H_
 
 #include <vulkan/vulkan.h>
+
 #include <string>
 #include <vector>
+#include <tuple>
 
-using std::vector, std::string;
+#include "traipse/core/instances.h"
+
+using std::vector, std::string, std::tuple;
 
 namespace traipse {
 namespace core {
@@ -30,7 +34,9 @@ VkPhysicalDeviceMemoryProperties acquirePhysicalDeviceMemoryProperties(const VkP
 
 VkDevice createDevice(const PhysicalDeviceInfo &physicalDeviceInfo, uint32_t queueFamilyIndex);
 
-uint32_t selectGraphicsQueueFamilyIndex(const vector<VkQueueFamilyProperties> &queueFamilyProperties);
+
+tuple<size_t, size_t> selectPhysicalDeviceForPresentation(const InstanceInfo &instanceInfo, const vector<PhysicalDeviceInfo> &physicalDevicesInfo);
+
 }  // namespace core
 }  // namespace traipse
 

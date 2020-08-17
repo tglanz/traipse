@@ -5,6 +5,8 @@
 #include "traipse/core/devices.h"
 #include "traipse/core/slut.h"
 
+#include <GLFW/glfw3.h>
+
 #include <stdexcept>
 #include <string>
 
@@ -111,20 +113,35 @@ VkDevice createDevice(const PhysicalDeviceInfo &physicalDeviceInfo, uint32_t que
     return ans;
 }
 
-/**
- * the implementation is rather naive.
- * in the future this will be more sophisticated perhaps.
- *
- * i.e; find multiple, find best etc...
- */
-uint32_t selectGraphicsQueueFamilyIndex(const vector<VkQueueFamilyProperties> &queueFamilyProperties) {
-    for (size_t idx = 0; idx < queueFamilyProperties.size(); ++idx) {
-        if (queueFamilyProperties.at(idx).queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            return idx; 
+
+tuple<size_t, size_t> selectPhysicalDeviceForPresentation(
+        const InstanceInfo &instanceInfo, 
+        const vector<PhysicalDeviceInfo> &physicalDevicesInfo) {
+
+    // this function has only 2 loops and looks bad. reformat 
+
+    auto instance = instanceInfo.instance;
+
+    for (size_t physicalDeviceIndex = 0;
+         physicalDeviceIndex < physicalDevicesInfo.size(); 
+         ++physicalDeviceIndex) {
+
+        auto physicalDeviceInfo = physicalDevicesInfo.at(physicalDeviceIndex);
+        auto physicalDevice = physicalDeviceInfo.physicalDevice;
+        auto queueFamilyProperties = physicalDeviceInfo.queueFamilyProperties;
+
+        for (size_t queueFamilyIndex = 0; 
+             queueFamilyIndex < queueFamilyProperties.size(); 
+             ++queueFamilyIndex) {
+
+            if (glfwGetPhysicalDevicePresentationSupport(
+                        instance, physicalDevice, queueFamilyIndex)) {
+                return std::make_tuple(physicalDeviceIndex, queueFamilyIndex); 
+            }
         }
     }
 
-    throw std::runtime_error("failed to find an appropriate queue family");
+    throw std::runtime_error("failed to find an appropriate physical device");
 }
 
 }  // core

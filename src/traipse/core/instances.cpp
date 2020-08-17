@@ -2,17 +2,19 @@
 #include "traipse/core/slut.h"
 
 #include <stdexcept>
+#include <GLFW/glfw3.h>
 
 namespace traipse {
 namespace core {
     
-InstanceInfo createInstance() {
+InstanceInfo createInstance() { 
+
+    uint32_t count;
+    const char **extensionNames = glfwGetRequiredInstanceExtensions(&count); 
 
     InstanceInfo ans = {
         .instance = VK_NULL_HANDLE,
-        .extensionNames = {
-            VK_KHR_SURFACE_EXTENSION_NAME,
-        }
+        .extensionNames = vector(extensionNames, extensionNames + count)
     };
 
     VkApplicationInfo applicationInfo;

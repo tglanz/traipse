@@ -25,7 +25,7 @@ void cleanup(
         }
 
         if (commandPool != VK_NULL_HANDLE) {
-            cout << "destroying command pool: " << commandPool << endl;
+            cout << "destroying command pool" << endl;
             vkDestroyCommandPool(device, commandPool, NULL);
         }
 
@@ -33,12 +33,10 @@ void cleanup(
         vkDestroyDevice(device, NULL);
     }
 
-    
     if (instance != VK_NULL_HANDLE) {
         cout << "destroying instance" << endl;
         vkDestroyInstance(instance, NULL);
     }
-
 }
 
 bool hasFlag(uint32_t flags, uint32_t flag) {
@@ -92,19 +90,22 @@ int main(/* int argc, char** argv */) {
         }
 
         PhysicalDeviceInfo physicalDeviceInfo;
+        uint32_t queueFamilyIndex;
         {
             cout << "acquiring physical devices information" << endl;
             vector<PhysicalDeviceInfo> physicalDevicesInfo = acquirePhysicalDevicesInfo(instanceInfo.instance);
             printPhysicalDevicesInfo(physicalDevicesInfo);
 
-            // for now...
-            cout << "choosing the first one" << endl;
-            physicalDeviceInfo = physicalDevicesInfo.at(0);
-        }
+            const auto& [left, right] = selectPhysicalDeviceForPresentation(instanceInfo, physicalDevicesInfo);
 
-        cout << "selecting a queue family with graphics support" << endl;
-        uint32_t queueFamilyIndex = selectGraphicsQueueFamilyIndex(physicalDeviceInfo.queueFamilyProperties);
-        cout << " - queue family index: " << queueFamilyIndex << endl; 
+            physicalDeviceInfo = physicalDevicesInfo.at(left);
+            queueFamilyIndex = right;
+
+            cout
+                << "chose physical device: " << physicalDeviceInfo.physicalDeviceProperties.deviceName 
+                << ", queue family index: " << right 
+                << endl;
+        }
 
         cout << "creating device" << endl;
         device = createDevice(physicalDeviceInfo, queueFamilyIndex);
