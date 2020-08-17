@@ -10,7 +10,8 @@ InstanceInfo createInstance() {
 
     InstanceInfo ans = {
         .extensionNames = {
-            VK_KHR_SURFACE_EXTENSION_NAME
+            VK_KHR_SURFACE_EXTENSION_NAME,
+            VK_KHR_XLIB_SURFACE_EXTENSION_NAME
         }
     };
 
