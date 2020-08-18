@@ -80,14 +80,13 @@ InstanceInfo createInstance(bool enableValidationLayers) {
 }
 
 vector<VkLayerProperties> getInstanceLayerProperties() {
-    vector<VkLayerProperties> ans;
     uint32_t count;
 
     VkResult result = vkEnumerateInstanceLayerProperties(&count, NULL);
     if (result != VK_SUCCESS) throw std::runtime_error(
             "failed to get instance layer properties count: " + toMessage(result));
 
-    ans.resize(count);
+    vector<VkLayerProperties> ans(count);
     result = vkEnumerateInstanceLayerProperties(&count, ans.data());
     if (result != VK_SUCCESS) throw std::runtime_error(
             "failed to get instance layer properties: " + toMessage(result));

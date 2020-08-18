@@ -5,6 +5,7 @@
 #include "traipse/core/preferences.h"
 #include "traipse/core/instances.h"
 #include "traipse/core/devices.h"
+#include "traipse/core/queues.h"
 #include "traipse/core/commands.h"
 #include "traipse/core/surfaces.h"
 #include "traipse/core/swapchains.h"

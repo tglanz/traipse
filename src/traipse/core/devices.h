@@ -3,42 +3,28 @@
 
 #include <vulkan/vulkan.h>
 
-#include <string>
 #include <vector>
+#include <set>
 #include <tuple>
-#include <optional>
+#include <string>
 
 #include "traipse/core/instances.h"
+#include "traipse/core/queues.h"
 
-using std::vector, std::string, std::tuple, std::optional;
+using std::vector, std::tuple, std::set, std::string;
 
 namespace traipse {
 namespace core {
-
-struct QueueFamilyIndices {
-    vector<uint32_t> allGraphicsQueueFamilyIndices;
-    vector<uint32_t> allPresentationQueueFamilyIndices;
-
-    optional<uint32_t> graphicsQueueFamilyIndex;
-    optional<uint32_t> presentationQueueFamilyIndex;
-
-    bool isCompletelyValid() {
-        return graphicsQueueFamilyIndex.has_value() && presentationQueueFamilyIndex.has_value();
-    }
-
-    bool isIdeal() {
-        return 
-            isCompletelyValid() &&
-            (graphicsQueueFamilyIndex == presentationQueueFamilyIndex);
-    }
-};
 
 struct PhysicalDeviceInfo {
     VkPhysicalDevice physicalDevice;
     VkPhysicalDeviceProperties physicalDeviceProperties;
     VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
     vector<VkQueueFamilyProperties> queueFamilyProperties;
-    vector<const char *> extensionNames;
+    vector<VkExtensionProperties> availableExtensionProperties;
+    vector<const char *> enabledExtensionNames;
+
+    set<string> getUnsupportedExtensionNames() const;
 };
 
 vector<PhysicalDeviceInfo> acquirePhysicalDevicesInfo(
@@ -56,12 +42,15 @@ VkPhysicalDeviceProperties acquirePhysicalDeviceProperties(
 VkPhysicalDeviceMemoryProperties acquirePhysicalDeviceMemoryProperties(
         const VkPhysicalDevice &physicalDevice);
 
+vector<VkExtensionProperties> getPhysicalDeviceAvailableExtensionProperties(
+        const VkPhysicalDevice &physicalDevice);
+
 VkDevice createDevice(
         const PhysicalDeviceInfo &physicalDeviceInfo,
         const QueueFamilyIndices &queueFamilyIndices);
 
 QueueFamilyIndices discoverQueueFamilyIndices(
-        const PhysicalDeviceInfo &physicalDeviceInfo,
+        const PhysicalDeviceInfo &physicalDevice,
         const VkSurfaceKHR &surface);
 
 tuple<size_t, QueueFamilyIndices> selectPhysicalDevice(

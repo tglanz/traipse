@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "vector": "cpp",
+        "set": "cpp"
+    },
+    "C_Cpp.default.cppStandard": "c++20"
+}

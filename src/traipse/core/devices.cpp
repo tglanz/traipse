@@ -9,33 +9,53 @@
 
 #include <stdexcept>
 #include <string>
+#include <set>
 
-using std::string, std::vector;
+using std::string, std::vector, std::set;
 
 namespace traipse {
 namespace core {
+
+set<string> PhysicalDeviceInfo::getUnsupportedExtensionNames() const {
+    set<string> available;
+    for (const auto& props : availableExtensionProperties) {
+        available.insert(props.extensionName);
+    }
+    
+    set<string> unsupported;
+    for (const auto& enabled : enabledExtensionNames) {
+        if (!available.contains(enabled)) {
+            unsupported.insert(enabled);
+        }
+    }
+
+    return unsupported;
+}
 
 vector<PhysicalDeviceInfo> acquirePhysicalDevicesInfo(
         const VkInstance &instance) {
     vector<PhysicalDeviceInfo> ans;
     
     for (VkPhysicalDevice physicalDevice : acquirePhysicalDevices(instance)) {
-        ans.push_back({
+        PhysicalDeviceInfo info = {
             .physicalDevice = physicalDevice,
             .physicalDeviceProperties = acquirePhysicalDeviceProperties(physicalDevice),
             .physicalDeviceMemoryProperties = acquirePhysicalDeviceMemoryProperties(physicalDevice),
             .queueFamilyProperties = acquirePhysicalDeviceQueueFamilyProperties(physicalDevice),
-            .extensionNames = {
+            .availableExtensionProperties = getPhysicalDeviceAvailableExtensionProperties(physicalDevice),
+            .enabledExtensionNames = {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME
             }
-        });
+        };
+
+        ans.push_back(info);
     }
+
 
     return ans;
 }
 
 vector<VkPhysicalDevice> acquirePhysicalDevices(const VkInstance &instance) {
-    vector<VkPhysicalDevice> ans;
 
     uint32_t count;
     VkResult result = vkEnumeratePhysicalDevices(instance, &count, nullptr);
@@ -44,22 +64,22 @@ vector<VkPhysicalDevice> acquirePhysicalDevices(const VkInstance &instance) {
             "failed to acquire physical devices count: " + toMessage(result));
 
     if (count > 0) {
-        ans.resize(count);
+        vector<VkPhysicalDevice> ans(count);
         result = vkEnumeratePhysicalDevices(instance, &count, ans.data());
 
         if (result != VK_SUCCESS) throw std::runtime_error(
             "failed to acquire physical devices: " + toMessage(result));
+        return ans;
     }
 
-    return ans;
+    return {};
 }
 
 vector<VkQueueFamilyProperties> acquirePhysicalDeviceQueueFamilyProperties(const VkPhysicalDevice &physicalDevice) {
     uint32_t count;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &count, NULL);
 
-    vector<VkQueueFamilyProperties> ans;
-    ans.resize(count);
+    vector<VkQueueFamilyProperties> ans(count);
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &count, ans.data());
 
     return ans;
@@ -76,43 +96,13 @@ VkPhysicalDeviceMemoryProperties acquirePhysicalDeviceMemoryProperties(const VkP
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &ans);
     return ans;
 }
+vector<VkExtensionProperties> getPhysicalDeviceAvailableExtensionProperties(
+        const VkPhysicalDevice &physicalDevice) {
+    uint32_t count;
+    vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &count, NULL);
 
-VkDevice createDevice(
-        const PhysicalDeviceInfo &physicalDeviceInfo, 
-        const QueueFamilyIndices &queueFamilyIndices) {
-    // pick the first queue that support graphics, use it.
-    // TODO: acquire all such queues and use the priority mechanism.
-
-    VkDevice ans = {};
-
-
-    float queuePriorities[1] = {0.0};
-    VkDeviceQueueCreateInfo deviceQueueCreateInfo = {};
-    deviceQueueCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsQueueFamilyIndex.value();
-    deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    deviceQueueCreateInfo.pNext = NULL;
-    deviceQueueCreateInfo.queueCount = 1;
-    deviceQueueCreateInfo.pQueuePriorities = queuePriorities;
-
-    VkDeviceCreateInfo deviceCreateInfo = {};
-    deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    deviceCreateInfo.pNext = NULL;
-    deviceCreateInfo.queueCreateInfoCount = 1;
-    deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
-    deviceCreateInfo.enabledExtensionCount = physicalDeviceInfo.extensionNames.size();
-    deviceCreateInfo.ppEnabledExtensionNames = physicalDeviceInfo.extensionNames.size() > 0
-        ? physicalDeviceInfo.extensionNames.data()
-        : NULL;
-    deviceCreateInfo.enabledLayerCount = 0;
-    deviceCreateInfo.ppEnabledLayerNames = NULL;
-    deviceCreateInfo.pEnabledFeatures = NULL;
-
-    VkResult result = vkCreateDevice(
-            physicalDeviceInfo.physicalDevice, &deviceCreateInfo, NULL, &ans);
-
-    if (result != VK_SUCCESS) throw std::runtime_error(
-            "failed to create device: " + toMessage(result));
-
+    vector<VkExtensionProperties> ans(count);
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &count, ans.data());
     return ans;
 }
 
@@ -156,6 +146,44 @@ QueueFamilyIndices discoverQueueFamilyIndices(
     return queueFamilyIndices;
 }
 
+VkDevice createDevice(
+        const PhysicalDeviceInfo &physicalDeviceInfo, 
+        const QueueFamilyIndices &queueFamilyIndices) {
+    // pick the first queue that support graphics, use it.
+    // TODO: acquire all such queues and use the priority mechanism.
+
+    VkDevice ans = {};
+
+    float queuePriorities = 0;
+    VkDeviceQueueCreateInfo deviceQueueCreateInfo = {};
+    deviceQueueCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsQueueFamilyIndex.value();
+    deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    deviceQueueCreateInfo.pNext = NULL;
+    deviceQueueCreateInfo.queueCount = 1;
+    deviceQueueCreateInfo.pQueuePriorities = &queuePriorities;
+
+    VkDeviceCreateInfo deviceCreateInfo = {};
+    deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceCreateInfo.pNext = NULL;
+    deviceCreateInfo.queueCreateInfoCount = 1;
+    deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
+    deviceCreateInfo.enabledExtensionCount = physicalDeviceInfo.enabledExtensionNames.size();
+    deviceCreateInfo.ppEnabledExtensionNames = physicalDeviceInfo.enabledExtensionNames.size() > 0
+        ? physicalDeviceInfo.enabledExtensionNames.data()
+        : NULL;
+    deviceCreateInfo.enabledLayerCount = 0;
+    deviceCreateInfo.ppEnabledLayerNames = NULL;
+    deviceCreateInfo.pEnabledFeatures = NULL;
+
+    VkResult result = vkCreateDevice(
+            physicalDeviceInfo.physicalDevice, &deviceCreateInfo, NULL, &ans);
+
+    if (result != VK_SUCCESS) throw std::runtime_error(
+            "failed to create device: " + toMessage(result));
+
+    return ans;
+}
+
 tuple<size_t, QueueFamilyIndices> selectPhysicalDevice(
         const vector<PhysicalDeviceInfo> &physicalDevicesInfo,
         const VkSurfaceKHR &surface) {
@@ -167,8 +195,12 @@ tuple<size_t, QueueFamilyIndices> selectPhysicalDevice(
     size_t candidatePhysicalDeviceIndex;
     QueueFamilyIndices candidateQueueFamilyIndices;
 
-    for (size_t physicalDeviceIndex = 0; physicalDevicesInfo.size(); ++physicalDeviceIndex) {
+    for (size_t physicalDeviceIndex = 0; physicalDeviceIndex < physicalDevicesInfo.size(); ++physicalDeviceIndex) {
         const auto& physicalDeviceInfo = physicalDevicesInfo.at(physicalDeviceIndex);
+
+        if (physicalDeviceInfo.getUnsupportedExtensionNames().size() > 0) {
+            continue;
+        }
 
         QueueFamilyIndices queueFamilyIndices = discoverQueueFamilyIndices(
                 physicalDeviceInfo, surface);

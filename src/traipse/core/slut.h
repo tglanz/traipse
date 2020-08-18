@@ -3,11 +3,12 @@
 
 #include <stdexcept>
 #include <vector>
+#include <set>
 #include <string>
 
 #include <vulkan/vulkan.h>
 
-using std::string, std::vector;
+using std::string, std::vector, std::set;
 
 namespace traipse {
 namespace core {

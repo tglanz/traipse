@@ -1,5 +1,7 @@
 #include "traipse/core/slut.h"
 
+using std::vector, std::set, std::string;
+
 namespace traipse {
 namespace core {
 

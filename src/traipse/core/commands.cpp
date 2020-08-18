@@ -24,8 +24,7 @@ VkCommandPool createCommandPool(const VkDevice &device, uint32_t queueFamilyInde
 }
 
 vector<VkCommandBuffer> allocateCommandBuffers(const VkDevice &device, const VkCommandPool &commandPool, uint32_t count) {
-    vector<VkCommandBuffer> ans = {};
-    ans.resize(count);
+    vector<VkCommandBuffer> ans(count);
 
     VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;

@@ -37,7 +37,6 @@ VkSurfaceCapabilitiesKHR getPhysicalDeviceSurfaceCapabilities(
 vector<VkPresentModeKHR> getPhysicalDeviceSurfacePresentModes(
         const VkPhysicalDevice &physicalDevice,
         const VkSurfaceKHR &surface) {
-    vector<VkPresentModeKHR> ans = {};
     
     uint32_t count;
     VkResult result = vkGetPhysicalDeviceSurfacePresentModesKHR(
@@ -46,7 +45,7 @@ vector<VkPresentModeKHR> getPhysicalDeviceSurfacePresentModes(
     if (result != VK_SUCCESS) throw std::runtime_error(
             "failed to get physical device surface present modes count: " + toMessage(result));
 
-    ans.resize(count);
+    vector<VkPresentModeKHR> ans(count);
     result = vkGetPhysicalDeviceSurfacePresentModesKHR(
             physicalDevice, surface, &count, ans.data());
 
@@ -60,7 +59,6 @@ vector<VkPresentModeKHR> getPhysicalDeviceSurfacePresentModes(
 vector<VkSurfaceFormatKHR> getPhysicalDeviceSurfaceFormats(
         const VkPhysicalDevice &physicalDevice,
         const VkSurfaceKHR &surface) {
-    vector<VkSurfaceFormatKHR> ans = {};
 
     uint32_t count;
     VkResult result = vkGetPhysicalDeviceSurfaceFormatsKHR(
@@ -69,7 +67,7 @@ vector<VkSurfaceFormatKHR> getPhysicalDeviceSurfaceFormats(
     if (result != VK_SUCCESS) throw std::runtime_error(
             "failed to get physical device surface format count");
 
-    ans.resize(count);
+    vector<VkSurfaceFormatKHR> ans(count);
 
     result = vkGetPhysicalDeviceSurfaceFormatsKHR(
             physicalDevice, surface, &count, ans.data());

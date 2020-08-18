@@ -69,8 +69,8 @@ void printPhysicalDevicesInfo(vector<PhysicalDeviceInfo> physicalDevicesInfo) {
         cout << "- " << deviceName << endl;
         cout << " - type: " << deviceType << endl;
 
-        cout << " - extensions: " << endl;
-        for (auto extension : info.extensionNames) {
+        cout << " - enabled extensions: " << endl;
+        for (auto extension : info.enabledExtensionNames) {
             cout << "  - " << extension << endl;
         }
 
