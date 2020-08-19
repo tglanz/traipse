@@ -3,7 +3,11 @@
 #include "traipse/core/preferences.h"
 #include "traipse/core/slut.h"
 
+#include <vulkan/vulkan.h>
 #include <stdexcept>
+#include <vector>
+
+using std::vector;
 
 namespace traipse {
 namespace core {
@@ -19,7 +23,9 @@ SwapchainInfo createSwapchain(
     SwapchainInfo ans = {
         .swapchain = VK_NULL_HANDLE,
         .surfaceFormat = chooseSurfaceFormat(physicalDeviceSurfaceInfo.surfaceFormats),
-        .imageExtent = physicalDeviceSurfaceInfo.capabilities.currentExtent
+        .imageExtent = physicalDeviceSurfaceInfo.capabilities.currentExtent,
+        .images = {},
+        .imageViews = {}
     };
 
     VkResult result;
@@ -78,6 +84,57 @@ SwapchainInfo createSwapchain(
     result = vkCreateSwapchainKHR(device, &swapchainCreateInfo, NULL, &ans.swapchain); 
     if (result != VK_SUCCESS) throw std::runtime_error(
             "failed to create swapchain: " + toMessage(result));
+
+    ans.images = getSwapchainImages(device, ans.swapchain);
+    ans.imageViews = createImageViews(device, ans.images, ans.surfaceFormat.format);
+
+    return ans;
+}
+
+vector<VkImage> getSwapchainImages(
+        const VkDevice &device,
+        const VkSwapchainKHR &swapchain) {
+    uint32_t count;
+
+    VkResult result = vkGetSwapchainImagesKHR(device, swapchain, &count, NULL);
+    if (result != VK_SUCCESS) throw std::runtime_error("failed to get swapchain image count");
+
+    vector<VkImage> ans(count);
+    result = vkGetSwapchainImagesKHR(device, swapchain, &count, ans.data());
+    if (result != VK_SUCCESS) throw std::runtime_error("failed to get swapchain images");
+
+    return ans;
+}
+
+vector<VkImageView> createImageViews(
+        const VkDevice &device,
+        const vector<VkImage> &images,
+        const VkFormat format) {
+    
+    vector<VkImageView> ans(images.size());
+
+    for (size_t idx = 0; idx < images.size(); ++idx) {
+        VkImageViewCreateInfo imageViewCreateInfo = {};
+        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        imageViewCreateInfo.pNext = NULL;
+        imageViewCreateInfo.flags = 0;
+        imageViewCreateInfo.image = images.at(idx);
+        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        imageViewCreateInfo.format = format;
+        imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+        imageViewCreateInfo.subresourceRange.levelCount = 1;
+        imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        imageViewCreateInfo.subresourceRange.layerCount = 1;
+
+        VkResult result = vkCreateImageView(device, &imageViewCreateInfo, NULL, &ans.at(idx));
+        if (result != VK_SUCCESS) throw std::runtime_error(
+            "failed to create image view: " + std::to_string(idx) + "/" + std::to_string(images.size()));
+    }
 
     return ans;
 }

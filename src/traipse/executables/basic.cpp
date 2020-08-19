@@ -16,7 +16,7 @@ void cleanup(
         const VkInstance &instance,
         const VkSurfaceKHR surface,
         const VkDevice &device, 
-        const VkSwapchainKHR &swapchain,
+        const SwapchainInfo &swapchainInfo,
         const VkCommandPool &commandPool, 
         const vector<VkCommandBuffer> commandBuffers,
         GLFWwindow *window
@@ -33,8 +33,12 @@ void cleanup(
             vkDestroyCommandPool(device, commandPool, NULL);
         }
 
+        for (const auto& imageView : swapchainInfo.imageViews) {
+            vkDestroyImageView(device, imageView, NULL);
+        }
+
         cout << "destroying swapchain" << endl;
-        vkDestroySwapchainKHR(device, swapchain, NULL);
+        vkDestroySwapchainKHR(device, swapchainInfo.swapchain, NULL);
 
         cout << "destroying device" << endl;
         vkDestroyDevice(device, NULL);
@@ -167,7 +171,7 @@ int main(/* int argc, char** argv */) {
             instanceInfo.instance, 
             surface, 
             device, 
-            swapchainInfo.swapchain, 
+            swapchainInfo, 
             commandPool, 
             commandBuffers, 
             window);
