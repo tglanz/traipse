@@ -18,24 +18,29 @@ void cleanup(
         const VkDevice &device, 
         const SwapchainInfo &swapchainInfo,
         const PipelineInfo &pipelineInfo,
+        const vector<VkFramebuffer> framebuffers,
         const VkCommandPool &commandPool, 
         const vector<VkCommandBuffer> commandBuffers,
         GLFWwindow *window
 ) {
-
     if (device != VK_NULL_HANDLE) {
+        
         if (commandBuffers.size() > 0) {
             cout << "freeing command buffers" << endl;
             vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
         }
 
-        if (commandPool != VK_NULL_HANDLE) {
-            cout << "destroying command pool" << endl;
-            vkDestroyCommandPool(device, commandPool, NULL);
+        cout << "destroying command pool" << endl;
+        vkDestroyCommandPool(device, commandPool, NULL);
+
+        for (size_t idx = 0; idx < swapchainInfo.imageViews.size(); ++idx) {
+            cout << "destroying image view " << idx + 1 << "/" << swapchainInfo.imageViews.size() << endl;
+            vkDestroyImageView(device, swapchainInfo.imageViews.at(idx), NULL);
         }
 
-        for (const auto& imageView : swapchainInfo.imageViews) {
-            vkDestroyImageView(device, imageView, NULL);
+        for (size_t idx = 0; idx < framebuffers.size(); ++idx) {
+            cout << "destroying framebuffer " << idx + 1 << "/" << framebuffers.size() << endl;
+            vkDestroyFramebuffer(device, framebuffers.at(idx), NULL);
         }
 
         cout << "destroying swapchain" << endl;
@@ -59,6 +64,7 @@ void cleanup(
         cout << "destroying device" << endl;
         vkDestroyDevice(device, NULL);
     } 
+
 
     if (instance != VK_NULL_HANDLE) {
         if (surface != VK_NULL_HANDLE) {
@@ -119,6 +125,7 @@ int main(/* int argc, char** argv */) {
     VkDevice device;
     SwapchainInfo swapchainInfo;
     PipelineInfo pipelineInfo;
+    vector<VkFramebuffer> framebuffers;
     VkCommandPool commandPool;
     vector<VkCommandBuffer> commandBuffers;
 
@@ -176,6 +183,9 @@ int main(/* int argc, char** argv */) {
         cout << "creating a pipeline" << endl;
         pipelineInfo = createPipeline(device, swapchainInfo);
 
+        cout << "creating framebuffers" << endl;
+        framebuffers = createFramebuffers(device, swapchainInfo, pipelineInfo);
+
         cout << "creating command pool" << endl;
         commandPool = createCommandPool(device, queueFamilyIndices.graphicsQueueFamilyIndex.value());
 
@@ -192,6 +202,7 @@ int main(/* int argc, char** argv */) {
             device, 
             swapchainInfo, 
             pipelineInfo,
+            framebuffers,
             commandPool, 
             commandBuffers, 
             window);

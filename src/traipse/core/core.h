@@ -10,5 +10,6 @@
 #include "traipse/core/surfaces.h"
 #include "traipse/core/swapchains.h"
 #include "traipse/core/pipeline.h"
+#include "traipse/core/framebuffers.h"
 
 #endif  // TRAIPSE_CORE_CORE_H_

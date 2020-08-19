@@ -7,9 +7,6 @@
 #include <vector>
 #include <stdexcept>
 
-#include <iostream>
-using std::cout, std::endl;
-
 using std::vector, std::string;
 
 namespace traipse {
@@ -198,6 +195,7 @@ PipelineInfo createPipeline(
     pipelineCreateInfo.pDynamicState = VK_NULL_HANDLE;
     pipelineCreateInfo.layout = ans.layout;
     pipelineCreateInfo.renderPass = ans.renderPass;
+    pipelineCreateInfo.subpass = 0;
     // pipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
     pipelineCreateInfo.pDynamicState = VK_NULL_HANDLE;
 
