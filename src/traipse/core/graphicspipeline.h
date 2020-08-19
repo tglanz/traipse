@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "traipse/core/swapchains.h"
 #include "traipse/core/slut.h"
 
 namespace traipse {

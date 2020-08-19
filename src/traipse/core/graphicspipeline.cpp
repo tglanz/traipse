@@ -12,6 +12,26 @@ using std::vector, std::string;
 namespace traipse {
 namespace core {
 
+static vector<VkPipelineShaderStageCreateInfo> createShaderStageCreateInfos(
+    const ShaderModules &shaderModules
+) {
+    vector<VkPipelineShaderStageCreateInfo> ans(2);
+
+    // vertex shader stage
+    ans.at(0).sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    ans.at(0).stage = VK_SHADER_STAGE_VERTEX_BIT;
+    ans.at(0).module = shaderModules.vertex;
+    ans.at(0).pName = "main";
+
+    // fragment shader stage
+    ans.at(1).sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    ans.at(1).stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    ans.at(1).module = shaderModules.fragment;
+    ans.at(1).pName = "main";
+
+    return ans;
+}
+
 GraphicsPipelineInfo createGraphicsPipeline(
     const VkDevice &device
 ) {
@@ -22,25 +42,34 @@ GraphicsPipelineInfo createGraphicsPipeline(
             device, "shaders/vert.spv"),
         .fragment = createShaderModuleFromSpirvFile(
             device, "shaders/frag.spv")
-    }; 
+    };
 
-    vector<VkPipelineShaderStageCreateInfo> stages(2);
+    vector<VkPipelineShaderStageCreateInfo> shaderStages = createShaderStageCreateInfos(shaderModules);
 
-    // vertex shader stage
-    stages.at(0).sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    stages.at(0).stage = VK_SHADER_STAGE_VERTEX_BIT;
-    stages.at(0).module = shaderModules.vertex;
-    stages.at(0).pName = "main";
+    // we still don't send any vertices, once we do we need to set the descriptors and stuff
+    VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        .pNext = VK_NULL_HANDLE,
+        .flags = 0,
+        .vertexBindingDescriptionCount = 0,
+        .pVertexBindingDescriptions = VK_NULL_HANDLE,
+        .vertexAttributeDescriptionCount = 0,
+        .pVertexAttributeDescriptions = VK_NULL_HANDLE,
+    };
 
-    // fragment shader stage
-    stages.at(1).sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    stages.at(1).stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    stages.at(1).module = shaderModules.fragment;
-    stages.at(1).pName = "main";
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+        .pNext = VK_NULL_HANDLE,
+        .flags = 0,
+        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        .primitiveRestartEnable = false,
+    };
 
     VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = {};
-    graphicsPipelineCreateInfo.stageCount = stages.size();
-    graphicsPipelineCreateInfo.pStages = stages.data();
+    graphicsPipelineCreateInfo.stageCount = shaderStages.size();
+    graphicsPipelineCreateInfo.pStages = shaderStages.data();
+    graphicsPipelineCreateInfo.pVertexInputState = &vertexInputStateCreateInfo;
+    graphicsPipelineCreateInfo.pInputAssemblyState = &inputAssemblyStateCreateInfo;
 
     VkPipeline pipeline;
     VkResult result = vkCreateGraphicsPipelines(
