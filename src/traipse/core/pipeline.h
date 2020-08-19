@@ -1,5 +1,5 @@
-#ifndef TRAIPSE_CORE_GRAPHICSPIPELINE_H_
-#define TRAIPSE_CORE_GRAPHICSPIPELINE_H_
+#ifndef TRAIPSE_CORE_PIPELINE_H_
+#define TRAIPSE_CORE_PIPELINE_H_
 
 #include <vulkan/vulkan.h>
 
@@ -18,7 +18,7 @@ struct ShaderModules {
     VkShaderModule fragment;
 };
 
-struct GraphicsPipelineInfo {
+struct PipelineInfo {
     VkPipeline pipeline;
     ShaderModules shaderModules;
     VkPipelineLayout layout;
@@ -30,7 +30,7 @@ struct GraphicsPipelineInfo {
     VkPipelineColorBlendAttachmentState colorBlendAttachmentState;
 };
 
-GraphicsPipelineInfo createGraphicsPipeline(
+PipelineInfo createPipeline(
     const VkDevice &device,
     const SwapchainInfo &swapchainInfo);
 
@@ -49,4 +49,4 @@ VkRenderPass createRenderPass(
 }  // core
 }  // namespace traipse
 
-#endif  // TRAIPSE_CORE_GRAPHICSPIPELINE_H_
+#endif  // TRAIPSE_CORE_PIPELINE_H_

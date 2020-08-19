@@ -65,7 +65,7 @@ vector<VkSurfaceFormatKHR> getPhysicalDeviceSurfaceFormats(
             physicalDevice, surface, &count, NULL);
 
     if (result != VK_SUCCESS) throw std::runtime_error(
-            "failed to get physical device surface format count");
+            "failed to get physical device surface format count" + toMessage(result));
 
     vector<VkSurfaceFormatKHR> ans(count);
 
@@ -73,7 +73,7 @@ vector<VkSurfaceFormatKHR> getPhysicalDeviceSurfaceFormats(
             physicalDevice, surface, &count, ans.data());
 
     if (result != VK_SUCCESS) throw std::runtime_error(
-            "failed to get physical device surface format count");
+            "failed to get physical device surface format count" + toMessage(result));
 
     return ans;
 }

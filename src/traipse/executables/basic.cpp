@@ -17,7 +17,7 @@ void cleanup(
         const VkSurfaceKHR surface,
         const VkDevice &device, 
         const SwapchainInfo &swapchainInfo,
-        const GraphicsPipelineInfo &graphicsPipelineInfo,
+        const PipelineInfo &pipelineInfo,
         const VkCommandPool &commandPool, 
         const vector<VkCommandBuffer> commandBuffers,
         GLFWwindow *window
@@ -42,19 +42,19 @@ void cleanup(
         vkDestroySwapchainKHR(device, swapchainInfo.swapchain, NULL);
 
         cout << "destroying vertex shader module" << endl;
-        vkDestroyShaderModule(device, graphicsPipelineInfo.shaderModules.vertex, NULL);
+        vkDestroyShaderModule(device, pipelineInfo.shaderModules.vertex, NULL);
 
         cout << "destroying fragment shader module" << endl;
-        vkDestroyShaderModule(device, graphicsPipelineInfo.shaderModules.fragment, NULL);
+        vkDestroyShaderModule(device, pipelineInfo.shaderModules.fragment, NULL);
 
         cout << "destroying render pass" << endl;
-        vkDestroyRenderPass(device, graphicsPipelineInfo.renderPass, NULL);
+        vkDestroyRenderPass(device, pipelineInfo.renderPass, NULL);
 
-        cout << "destroying graphics pipeline layout" << endl;
-        vkDestroyPipelineLayout(device, graphicsPipelineInfo.layout, NULL);
+        cout << "destroying pipeline layout" << endl;
+        vkDestroyPipelineLayout(device, pipelineInfo.layout, NULL);
 
-        cout << "destroying graphics pipeline" << endl;
-        vkDestroyPipeline(device, graphicsPipelineInfo.pipeline, NULL);
+        cout << "destroying pipeline" << endl;
+        vkDestroyPipeline(device, pipelineInfo.pipeline, NULL);
 
         cout << "destroying device" << endl;
         vkDestroyDevice(device, NULL);
@@ -118,7 +118,7 @@ int main(/* int argc, char** argv */) {
     QueueFamilyIndices queueFamilyIndices;
     VkDevice device;
     SwapchainInfo swapchainInfo;
-    GraphicsPipelineInfo graphicsPipelineInfo;
+    PipelineInfo pipelineInfo;
     VkCommandPool commandPool;
     vector<VkCommandBuffer> commandBuffers;
 
@@ -143,9 +143,8 @@ int main(/* int argc, char** argv */) {
 
         cout << "creating surface" << endl;
         result = glfwCreateWindowSurface(instanceInfo.instance, window, NULL, &surface);
-        if (result != VK_SUCCESS) {
-            throw std::runtime_error("failed to create surface: " + toMessage(result));
-        }
+        if (result != VK_SUCCESS) throw std::runtime_error(
+            "failed to create surface: " + toMessage(result));
 
         // acquire a physical device
         // scope this to not gather some garbage variables
@@ -174,8 +173,8 @@ int main(/* int argc, char** argv */) {
         cout << "creating a swapchain" << endl;
         swapchainInfo = createSwapchain(device, physicalDeviceInfo.physicalDevice, surface);
 
-        cout << "creating a graphics pipeline" << endl;
-        graphicsPipelineInfo = createGraphicsPipeline(device, swapchainInfo);
+        cout << "creating a pipeline" << endl;
+        pipelineInfo = createPipeline(device, swapchainInfo);
 
         cout << "creating command pool" << endl;
         commandPool = createCommandPool(device, queueFamilyIndices.graphicsQueueFamilyIndex.value());
@@ -192,7 +191,7 @@ int main(/* int argc, char** argv */) {
             surface, 
             device, 
             swapchainInfo, 
-            graphicsPipelineInfo,
+            pipelineInfo,
             commandPool, 
             commandBuffers, 
             window);

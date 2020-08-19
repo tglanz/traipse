@@ -1,4 +1,4 @@
-#include "traipse/core/graphicspipeline.h"
+#include "traipse/core/pipeline.h"
 #include "traipse/core/slut.h"
 
 #include <vulkan/vulkan.h>
@@ -106,11 +106,11 @@ static VkPipelineColorBlendStateCreateInfo createColorBlendStateCreateInfo(
     return colorBlendStateCreateInfo;
 }
 
-GraphicsPipelineInfo createGraphicsPipeline(
+PipelineInfo createPipeline(
     const VkDevice &device,
     const SwapchainInfo &swapchainInfo
 ) {
-    GraphicsPipelineInfo ans = {};
+    PipelineInfo ans = {};
     ans.sampleCount = VK_SAMPLE_COUNT_1_BIT;
 
     // this will be parameterizd once
@@ -185,29 +185,27 @@ GraphicsPipelineInfo createGraphicsPipeline(
     // dynamicStateCreateInfo.dynamicStateCount = 3;
     // dynamicStateCreateInfo.pDynamicStates = dynamicStates;
 
-    VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = {};
-    graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    graphicsPipelineCreateInfo.stageCount = shaderStages.size();
-    graphicsPipelineCreateInfo.pStages = shaderStages.data();
-    graphicsPipelineCreateInfo.pVertexInputState = &vertexInputStateCreateInfo;
-    graphicsPipelineCreateInfo.pInputAssemblyState = &inputAssemblyStateCreateInfo;
-    graphicsPipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
-    graphicsPipelineCreateInfo.pRasterizationState = &rasterizationStateCreateInfo;
-    graphicsPipelineCreateInfo.pMultisampleState = &multisampleStateCreateInfo;
-    graphicsPipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
-    graphicsPipelineCreateInfo.pDynamicState = VK_NULL_HANDLE;
-    graphicsPipelineCreateInfo.layout = ans.layout;
-    graphicsPipelineCreateInfo.renderPass = ans.renderPass;
-    // graphicsPipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
-    graphicsPipelineCreateInfo.pDynamicState = VK_NULL_HANDLE;
-
-    cout << "ITIS: " << (float)graphicsPipelineCreateInfo.pViewportState->pViewports[0].width << " !!!" << endl;
+    VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
+    pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineCreateInfo.stageCount = shaderStages.size();
+    pipelineCreateInfo.pStages = shaderStages.data();
+    pipelineCreateInfo.pVertexInputState = &vertexInputStateCreateInfo;
+    pipelineCreateInfo.pInputAssemblyState = &inputAssemblyStateCreateInfo;
+    pipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
+    pipelineCreateInfo.pRasterizationState = &rasterizationStateCreateInfo;
+    pipelineCreateInfo.pMultisampleState = &multisampleStateCreateInfo;
+    pipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
+    pipelineCreateInfo.pDynamicState = VK_NULL_HANDLE;
+    pipelineCreateInfo.layout = ans.layout;
+    pipelineCreateInfo.renderPass = ans.renderPass;
+    // pipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
+    pipelineCreateInfo.pDynamicState = VK_NULL_HANDLE;
 
     VkResult result = vkCreateGraphicsPipelines(
-        device, VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, NULL, &ans.pipeline);
+        device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, NULL, &ans.pipeline);
 
     if (result != VK_SUCCESS) throw std::runtime_error(
-        "failed to create graphics pipeline");
+        "failed to create pipeline: " + toMessage(result));
 
     return ans;
 }
@@ -225,7 +223,7 @@ VkShaderModule createShaderModuleFromSpirvFile(
     VkShaderModule ans;
     VkResult result = vkCreateShaderModule(device, &shaderModuleCreateInfo, NULL, &ans);
     if (result != VK_SUCCESS) throw std::runtime_error(
-        "failed to create shader module from spirv file: " + filePath);
+        "failed to create shader module from spirv file - " + filePath + toMessage(result));
 
     return ans;
 }

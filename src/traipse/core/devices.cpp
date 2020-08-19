@@ -124,7 +124,7 @@ QueueFamilyIndices discoverQueueFamilyIndices(
                 physicalDeviceInfo.physicalDevice, index, surface, &presentationSupported);
 
         if (result != VK_SUCCESS) throw std::runtime_error(
-                "failed to query presentation support");
+                "failed to query presentation support: " + toMessage(result));
 
         if (presentationSupported) {
             queueFamilyIndices.allPresentationQueueFamilyIndices.push_back(index);

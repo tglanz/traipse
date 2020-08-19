@@ -97,11 +97,13 @@ vector<VkImage> getSwapchainImages(
     uint32_t count;
 
     VkResult result = vkGetSwapchainImagesKHR(device, swapchain, &count, NULL);
-    if (result != VK_SUCCESS) throw std::runtime_error("failed to get swapchain image count");
+    if (result != VK_SUCCESS) throw std::runtime_error(
+        "failed to get swapchain image count" + toMessage(result));
 
     vector<VkImage> ans(count);
     result = vkGetSwapchainImagesKHR(device, swapchain, &count, ans.data());
-    if (result != VK_SUCCESS) throw std::runtime_error("failed to get swapchain images");
+    if (result != VK_SUCCESS) throw std::runtime_error(
+        "failed to get swapchain images" + toMessage(result));
 
     return ans;
 }
@@ -133,7 +135,9 @@ vector<VkImageView> createImageViews(
 
         VkResult result = vkCreateImageView(device, &imageViewCreateInfo, NULL, &ans.at(idx));
         if (result != VK_SUCCESS) throw std::runtime_error(
-            "failed to create image view: " + std::to_string(idx) + "/" + std::to_string(images.size()));
+            "failed to create image view " +
+            std::to_string(idx) + "/" + std::to_string(images.size()) +
+            ": " + toMessage(result));
     }
 
     return ans;
