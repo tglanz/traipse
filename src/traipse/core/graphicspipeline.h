@@ -20,15 +20,31 @@ struct ShaderModules {
 
 struct GraphicsPipelineInfo {
     VkPipeline pipeline;
-    ShaderModules shaderModules;  
+    ShaderModules shaderModules;
+    VkPipelineLayout layout;
+    VkRenderPass renderPass;
+
+    VkViewport viewport;
+    VkRect2D scissor;
+    VkSampleCountFlagBits sampleCount;
+    VkPipelineColorBlendAttachmentState colorBlendAttachmentState;
 };
 
 GraphicsPipelineInfo createGraphicsPipeline(
-    const VkDevice &device);
+    const VkDevice &device,
+    const SwapchainInfo &swapchainInfo);
 
 VkShaderModule createShaderModuleFromSpirvFile(
     const VkDevice &device,
     std::string filePath);
+
+VkPipelineLayout createPipelineLayout(
+    const VkDevice &device);
+
+VkRenderPass createRenderPass(
+    const VkDevice &device,
+    const SwapchainInfo &swapchainInfo,
+    VkSampleCountFlagBits sampleCount);
 
 }  // core
 }  // namespace traipse

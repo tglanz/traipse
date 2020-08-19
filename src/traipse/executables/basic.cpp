@@ -17,6 +17,7 @@ void cleanup(
         const VkSurfaceKHR surface,
         const VkDevice &device, 
         const SwapchainInfo &swapchainInfo,
+        const GraphicsPipelineInfo &graphicsPipelineInfo,
         const VkCommandPool &commandPool, 
         const vector<VkCommandBuffer> commandBuffers,
         GLFWwindow *window
@@ -39,6 +40,21 @@ void cleanup(
 
         cout << "destroying swapchain" << endl;
         vkDestroySwapchainKHR(device, swapchainInfo.swapchain, NULL);
+
+        cout << "destroying vertex shader module" << endl;
+        vkDestroyShaderModule(device, graphicsPipelineInfo.shaderModules.vertex, NULL);
+
+        cout << "destroying fragment shader module" << endl;
+        vkDestroyShaderModule(device, graphicsPipelineInfo.shaderModules.fragment, NULL);
+
+        cout << "destroying render pass" << endl;
+        vkDestroyRenderPass(device, graphicsPipelineInfo.renderPass, NULL);
+
+        cout << "destroying graphics pipeline layout" << endl;
+        vkDestroyPipelineLayout(device, graphicsPipelineInfo.layout, NULL);
+
+        cout << "destroying graphics pipeline" << endl;
+        vkDestroyPipeline(device, graphicsPipelineInfo.pipeline, NULL);
 
         cout << "destroying device" << endl;
         vkDestroyDevice(device, NULL);
@@ -102,6 +118,7 @@ int main(/* int argc, char** argv */) {
     QueueFamilyIndices queueFamilyIndices;
     VkDevice device;
     SwapchainInfo swapchainInfo;
+    GraphicsPipelineInfo graphicsPipelineInfo;
     VkCommandPool commandPool;
     vector<VkCommandBuffer> commandBuffers;
 
@@ -157,6 +174,9 @@ int main(/* int argc, char** argv */) {
         cout << "creating a swapchain" << endl;
         swapchainInfo = createSwapchain(device, physicalDeviceInfo.physicalDevice, surface);
 
+        cout << "creating a graphics pipeline" << endl;
+        graphicsPipelineInfo = createGraphicsPipeline(device, swapchainInfo);
+
         cout << "creating command pool" << endl;
         commandPool = createCommandPool(device, queueFamilyIndices.graphicsQueueFamilyIndex.value());
 
@@ -172,6 +192,7 @@ int main(/* int argc, char** argv */) {
             surface, 
             device, 
             swapchainInfo, 
+            graphicsPipelineInfo,
             commandPool, 
             commandBuffers, 
             window);
