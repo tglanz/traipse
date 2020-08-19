@@ -1,6 +1,10 @@
 #include "traipse/core/slut.h"
 
-using std::vector, std::set, std::string;
+#include <string>
+#include <vector>
+#include <fstream>
+
+using std::string, std::vector;
 
 namespace traipse {
 namespace core {
@@ -48,6 +52,22 @@ string toMessage(const VkResult &result) {
          default:
              return "Unknown enum value";
     }
+}
+
+vector<char> readBinaryFile(string filePath) {
+    // ate - start at end so we can know the file size and initialize the vector
+    std::ifstream file(filePath, std::ios::ate | std::ios::binary);
+
+    if (!file.is_open()) throw std::runtime_error(
+        "failed to open file: " + filePath);
+
+    size_t fileSize = file.tellg();
+    vector<char> ans(fileSize);
+
+    file.seekg(0, std::ios::beg);
+    file.read(ans.data(), fileSize);
+
+    return ans;
 }
 
 }  // namespace core

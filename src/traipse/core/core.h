@@ -9,6 +9,6 @@
 #include "traipse/core/commands.h"
 #include "traipse/core/surfaces.h"
 #include "traipse/core/swapchains.h"
-// #include "traipse/core/layers.h"
+#include "traipse/core/graphicspipeline.h"
 
 #endif  // TRAIPSE_CORE_CORE_H_

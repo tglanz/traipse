@@ -2,18 +2,19 @@
 #define TRAIPSE_CORE_SLUT_H_
 
 #include <stdexcept>
-#include <vector>
-#include <set>
 #include <string>
+
+#include <vector>
 
 #include <vulkan/vulkan.h>
 
-using std::string, std::vector, std::set;
+using std::string, std::vector;
 
 namespace traipse {
 namespace core {
 
 string toMessage(const VkResult &result);
+vector<char> readBinaryFile(string filePath);
 
 }  // namespace core
 }  // namespace traipse
