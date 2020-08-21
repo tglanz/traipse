@@ -56,10 +56,6 @@ message("core files: ${core_source_files}")
 add_library(traipse_core SHARED ${core_source_files})
 target_link_libraries(traipse_core glfw)
 
-# -- traipse_basic
-add_executable(traipse_basic ${PROJECT_SOURCE_DIR}/src/traipse/executables/basic.cpp) 
-target_link_libraries(traipse_basic traipse_core)
-
 # -- traipse_application
 file(GLOB_RECURSE application_source_files "${PROJECT_SOURCE_DIR}/src/traipse/application/*.cpp")
 message("application files: ${application_source_files}")
