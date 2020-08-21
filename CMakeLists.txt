@@ -26,7 +26,8 @@ link_libraries(vulkan)
 include_directories(PUBLIC
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/third_party/vulkan/1.2.148.1/x86_64/include
-    ${PROJECT_SOURCE_DIR}/third_party/glfw/3.3.2/include)
+    ${PROJECT_SOURCE_DIR}/third_party/glfw/3.3.2/include
+    ${PROJECT_SOURCE_DIR}/third_party/spdlog/1.7.0/include)
 
 # include glfw in the project
 # -- don't build any of glfw extras except for glfw itself
@@ -38,6 +39,10 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_VULKAN_STATIC OFF CACHE BOOL "" FORCE)
 add_subdirectory("${PROJECT_SOURCE_DIR}/third_party/glfw/3.3.2")
+
+# include spdlog in the project
+set(SPDLOG_BUILD_SHARED ON CACHE BOOL "" FORCE)
+add_subdirectory("${PROJECT_SOURCE_DIR}/third_party/spdlog/1.7.0")
 
 # after all dependencies, be strict regarding code quality
 # if we have put it above the dependencies we will get errors regarding them, not cool
@@ -60,3 +65,4 @@ file(GLOB_RECURSE application_source_files "${PROJECT_SOURCE_DIR}/src/traipse/ap
 message("application files: ${application_source_files}")
 add_executable(traipse_application ${application_source_files})
 target_link_libraries(traipse_application traipse_core)
+target_link_libraries(traipse_application spdlog)

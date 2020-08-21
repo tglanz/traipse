@@ -1,9 +1,6 @@
 #ifndef TRAIPSE_APPLICATION_APPLICATION_H_
 #define TRAIPSE_APPLICATION_APPLICATION_H_
 
-#include <iostream>
-#include <exception>
-
 #include <vulkan/vulkan.h>
 
 #define GLFW_INCLUDE_VULKAN

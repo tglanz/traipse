@@ -1,7 +1,7 @@
 #include "traipse/application/application.h"
+#include <spdlog/spdlog.h>
 
-#include <iostream>
-using std::cout, std::endl;
+using spdlog::info, spdlog::debug;
 
 using namespace traipse::core;
 
@@ -9,12 +9,12 @@ namespace traipse {
 namespace application {
 
 void Application::initWindow() {
-    cout << "initializing glfw and checking support" << endl;
+    debug("initializing glfw and checking support");
     glfwInit();
     if (!glfwVulkanSupported()) throw std::runtime_error(
         "glfw vulkan is not supported"); 
 
-    cout << "creating window" << endl;
+    debug("creating window");
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(640, 480, "Traipse - Basic", NULL, NULL);
 }
@@ -23,10 +23,10 @@ void Application::initVulkan() {
 
     VkResult result;
 
-    cout << "creating instance" << endl;
+    debug("creating instance");
     instanceInfo = createInstance(true);
 
-    cout << "creating surface" << endl;
+    debug("creating surface");
     result = glfwCreateWindowSurface(instanceInfo.instance, window, NULL, &surface);
     if (result != VK_SUCCESS) throw std::runtime_error(
         "failed to create surface: " + toMessage(result));
@@ -34,39 +34,34 @@ void Application::initVulkan() {
     // acquire a physical device
     // scope this to not gather some garbage variables
     {
-        cout << "acquiring physical devices information" << endl;
+        debug("acquiring physical devices information");
         vector<PhysicalDeviceInfo> physicalDevicesInfo = acquirePhysicalDevicesInfo(
                 instanceInfo.instance);
 
-        cout << "selecting physical device and queue families" << endl;
+        debug("selecting physical device and queue families");
         const auto& [left, right] = selectPhysicalDevice(
                 physicalDevicesInfo, surface);
 
         physicalDeviceInfo = physicalDevicesInfo.at(left);
         queueFamilyIndices = right;
-
-        cout
-            << "- chose physical device: " << physicalDeviceInfo.physicalDeviceProperties.deviceName << endl
-            << "- queue family indices completely valid: " << queueFamilyIndices.isCompletelyValid() << endl
-            << "- queue family indices ideal: " << queueFamilyIndices.isIdeal() << endl;
     }
 
-    cout << "creating device" << endl;
+    debug("creating device");
     device = createDevice(physicalDeviceInfo, queueFamilyIndices);
 
-    cout << "creating a swapchain" << endl;
+    debug("creating a swapchain");
     swapchainInfo = createSwapchain(device, physicalDeviceInfo.physicalDevice, surface);
 
-    cout << "creating a pipeline" << endl;
+    debug("creating a pipeline");
     pipelineInfo = createPipeline(device, swapchainInfo);
 
-    cout << "creating framebuffers" << endl;
+    debug("creating framebuffers");
     framebuffers = createFramebuffers(device, swapchainInfo, pipelineInfo);
 
-    cout << "creating command pool" << endl;
+    debug("creating command pool");
     commandPool = createCommandPool(device, queueFamilyIndices.graphicsQueueFamilyIndex.value());
 
-    cout << "allocating command buffers" << endl;
+    debug("allocating command buffers");
     commandBuffers = allocateCommandBuffers(device, commandPool, swapchainInfo.imageViews.size());
 }
 
@@ -82,61 +77,61 @@ void Application::cleanup() {
     if (device != VK_NULL_HANDLE) {
         
         if (commandBuffers.size() > 0) {
-            cout << "freeing command buffers" << endl;
+            debug("freeing command buffers");
             vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
         }
 
-        cout << "destroying command pool" << endl;
+        debug("destroying command pool");
         vkDestroyCommandPool(device, commandPool, NULL);
 
         for (size_t idx = 0; idx < swapchainInfo.imageViews.size(); ++idx) {
-            cout << "destroying image view " << idx + 1 << "/" << swapchainInfo.imageViews.size() << endl;
+            debug("destroying image view {}/{}", idx + 1, swapchainInfo.imageViews.size());
             vkDestroyImageView(device, swapchainInfo.imageViews.at(idx), NULL);
         }
 
         for (size_t idx = 0; idx < framebuffers.size(); ++idx) {
-            cout << "destroying framebuffer " << idx + 1 << "/" << framebuffers.size() << endl;
+            debug("destroying framebuffer {}/{}", idx + 1, framebuffers.size());
             vkDestroyFramebuffer(device, framebuffers.at(idx), NULL);
         }
 
-        cout << "destroying swapchain" << endl;
+        debug("destroying swapchain");
         vkDestroySwapchainKHR(device, swapchainInfo.swapchain, NULL);
 
-        cout << "destroying vertex shader module" << endl;
+        debug("destroying vertex shader module");
         vkDestroyShaderModule(device, pipelineInfo.shaderModules.vertex, NULL);
 
-        cout << "destroying fragment shader module" << endl;
+        debug("destroying fragment shader module");
         vkDestroyShaderModule(device, pipelineInfo.shaderModules.fragment, NULL);
 
-        cout << "destroying render pass" << endl;
+        debug("destroying render pass");
         vkDestroyRenderPass(device, pipelineInfo.renderPass, NULL);
 
-        cout << "destroying pipeline layout" << endl;
+        debug("destroying pipeline layout");
         vkDestroyPipelineLayout(device, pipelineInfo.layout, NULL);
 
-        cout << "destroying pipeline" << endl;
+        debug("destroying pipeline");
         vkDestroyPipeline(device, pipelineInfo.pipeline, NULL);
 
-        cout << "destroying device" << endl;
+        debug("destroying device");
         vkDestroyDevice(device, NULL);
     } 
 
 
     if (instanceInfo.instance != VK_NULL_HANDLE) {
         if (surface != VK_NULL_HANDLE) {
-            cout << "destroying surface" << endl;
+            debug("destroying surface");
             vkDestroySurfaceKHR(instanceInfo.instance, surface, NULL);
         }
-        cout << "destroying instance" << endl;
+        debug("destroying instance");
         vkDestroyInstance(instanceInfo.instance, NULL);
     }
 
     if (window != NULL) {
-        cout << "destroying window" << endl;
+        debug("destroying window");
         glfwDestroyWindow(window);
     }
 
-    cout << "terminating glfw" << endl;
+    debug("terminating glfw");
     glfwTerminate();   
 }
 

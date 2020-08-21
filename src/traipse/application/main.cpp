@@ -1,19 +1,28 @@
 #include "traipse/application/application.h"
+#include "traipse/application/arguments.h"
 
-#include <iostream>
+#include <spdlog/spdlog.h>
+#include <string>
 
-using traipse::application::Application;
+using namespace traipse::application;
 
-int main() {
+int main(int argc, char **argv) {
+
     bool isError = false;
     Application application;
+    Arguments arguments = parseArguments(argc, argv);
+
+    spdlog::set_level(arguments.verbose
+        ? spdlog::level::debug
+        : spdlog::level::info);
+
     
     try {
         application.initWindow();
         application.initVulkan();
         application.mainLoop();
     } catch (const std::exception &exception) {
-        std::cerr << "error: " << exception.what() << std::endl;
+        spdlog::error(exception.what());
         isError = true;
     }
 
