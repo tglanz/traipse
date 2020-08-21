@@ -6,8 +6,6 @@
 #include <vector>
 #include <optional>
 
-#include "traipse/core/devices.h"
-
 using std::vector, std::optional;
 
 namespace traipse {
@@ -20,16 +18,18 @@ struct QueueFamilyIndices {
     optional<uint32_t> graphicsQueueFamilyIndex;
     optional<uint32_t> presentationQueueFamilyIndex;
 
-    constexpr inline bool isCompletelyValid() const {
-        return graphicsQueueFamilyIndex.has_value() && presentationQueueFamilyIndex.has_value();
-    }
-
-    constexpr inline bool isIdeal() const {
-        return 
-            isCompletelyValid() &&
-            (graphicsQueueFamilyIndex == presentationQueueFamilyIndex);
-    }
+    bool isCompletelyValid() const;
+    bool isIdeal() const;
 };
+
+struct Queues {
+    vector<VkQueue> graphics;
+    vector<VkQueue> presentation;
+};
+
+Queues getDeviceQueues(
+    const VkDevice &device,
+    const QueueFamilyIndices &queueFamilyIndices);
 
 }  // namespace core
 }  // namespace traipse

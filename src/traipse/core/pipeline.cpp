@@ -276,12 +276,26 @@ VkRenderPass createRenderPass(
     subpassDescription.pDepthStencilAttachment = VK_NULL_HANDLE; // TODO: once upon a time
     subpassDescription.pPreserveAttachments = VK_NULL_HANDLE; // TODO: once upon a time
 
+    // a new swapchain image acquisition is synchronized with the color attachment output stage;
+    // we need the render pass to wait for this stage so it'll have a valid image to render to
+    // and handle the transition. 
+    VkSubpassDependency subpassDependency = {};
+    subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL; // implicit subpass, prior to pipeline
+    subpassDependency.dstSubpass = 0; // our subpass, defined above
+    subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDependency.srcAccessMask = 0;
+    subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
     VkRenderPassCreateInfo renderPassCreateInfo = {};
     renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     renderPassCreateInfo.attachmentCount = 1;
     renderPassCreateInfo.pAttachments = attachmentDescriptions;
     renderPassCreateInfo.subpassCount = 1;
     renderPassCreateInfo.pSubpasses = &subpassDescription;
+    renderPassCreateInfo.dependencyCount = 1;
+    renderPassCreateInfo.pDependencies = &subpassDependency;
+
 
     VkRenderPass ans;
     VkResult result = vkCreateRenderPass(device, &renderPassCreateInfo, NULL, &ans);

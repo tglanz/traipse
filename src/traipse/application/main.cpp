@@ -9,7 +9,7 @@ using namespace traipse::application;
 int main(int argc, char **argv) {
 
     bool isError = false;
-    Application application;
+    Application application(2);
     Arguments arguments = parseArguments(argc, argv);
 
     spdlog::set_level(arguments.verbose
