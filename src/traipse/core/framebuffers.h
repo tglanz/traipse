@@ -19,7 +19,7 @@ vector<VkFramebuffer> createFramebuffers(
     const SwapchainInfo &swapchainInfo,
     const PipelineInfo &pipelineInfo);
 
-}  // core
+}  // namespace core
 }  // namespace traipse
 
 #endif  // TRAIPSE_CORE_FRAMEBUFFERS_H_

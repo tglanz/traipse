@@ -190,7 +190,7 @@ int main(/* int argc, char** argv */) {
         commandPool = createCommandPool(device, queueFamilyIndices.graphicsQueueFamilyIndex.value());
 
         cout << "allocating command buffers" << endl;
-        commandBuffers = allocateCommandBuffers(device, commandPool, 1);
+        commandBuffers = allocateCommandBuffers(device, commandPool, swapchainInfo.imageViews.size());
 
     } catch (const std::exception &exception) {
         cerr << "error: " << exception.what() << endl;

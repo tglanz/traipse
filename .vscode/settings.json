@@ -2,7 +2,8 @@
     "files.associations": {
         "vector": "cpp",
         "set": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "iostream": "cpp"
     },
     "C_Cpp.default.cppStandard": "c++20"
 }

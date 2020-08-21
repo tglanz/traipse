@@ -42,5 +42,5 @@ vector<VkFramebuffer> createFramebuffers(
     return ans;
 }
 
-}  // core
-}  // traipse
+}  // namespace core
+}  // namespace traipse

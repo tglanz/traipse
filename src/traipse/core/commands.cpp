@@ -1,6 +1,8 @@
 #include "traipse/core/commands.h"
 #include "traipse/core/slut.h"
 
+
+
 using std::string, std::vector;
 
 namespace traipse {
@@ -39,6 +41,40 @@ vector<VkCommandBuffer> allocateCommandBuffers(const VkDevice &device, const VkC
             "failed to allocate command buffers: " + toMessage(result));
 
     return ans;
+}
+
+void recordDrawCommands(
+    const VkCommandBuffer &commandBuffer,
+    const VkFramebuffer &framebuffer,
+    const SwapchainInfo &swapchainInfo,
+    const PipelineInfo &pipelineInfo
+) {
+    VkResult result;
+
+    VkCommandBufferBeginInfo commandBeginInfo = {};
+    commandBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    result = vkBeginCommandBuffer(commandBuffer, &commandBeginInfo);
+    if (result != VK_SUCCESS) throw std::runtime_error(
+        "failed to begin command buffer recording: " + toMessage(result));
+
+    VkRenderPassBeginInfo renderPassBeginInfo = {};
+    renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassBeginInfo.renderPass = pipelineInfo.renderPass;
+    renderPassBeginInfo.framebuffer = framebuffer;
+    renderPassBeginInfo.renderArea.offset = {0, 0};
+    renderPassBeginInfo.renderArea.extent = swapchainInfo.imageExtent;
+    VkClearValue clearValue = {0.0f, 0.0f, 0.0f, 1.0f};
+    renderPassBeginInfo.clearValueCount = 1;
+    renderPassBeginInfo.pClearValues = &clearValue;
+    vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineInfo.pipeline);
+    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    vkCmdEndRenderPass(commandBuffer);
+
+    result = vkEndCommandBuffer(commandBuffer);
+    if (result != VK_SUCCESS) throw std::runtime_error(
+        "failed to end command buffer recording");
 }
 
 }  // core
